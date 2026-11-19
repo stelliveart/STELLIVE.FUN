@@ -215,7 +215,11 @@
     </section>
 
     <!-- 프로젝트 카드 그리드 -->
-    <section id="projectsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></section>
+    <section id="projectsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="col-span-full text-center py-16 text-sm text-slate-400 bg-white rounded-2xl border border-slate-200/80">
+        구글 시트에서 최신 프로젝트 정보를 불러오는 중입니다...
+      </div>
+    </section>
   </main>
 
   <!-- 하단 푸터 -->
@@ -287,7 +291,7 @@
     </div>
   </div>
 
-  <!-- 3. 프로젝트 등록 / 수정 모달 (썸네일 이미지 파일 업로드 전용) -->
+  <!-- 3. 프로젝트 등록 / 수정 모달 -->
   <div id="projectModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
       <div class="flex items-center justify-between mb-4">
@@ -548,10 +552,9 @@
 
   <script>
     // ================= 상수 및 초기 설정 =================
-    // 일반 사용자 접속 시에도 즉시 구글 시트 데이터를 불러오도록 기본 웹 앱 URL 고정
     const DEFAULT_SHEETS_URL = "https://script.google.com/macros/s/AKfycby0SeuS5Z29oTRiIstdlXWuhyuhKkPTvEhv-Js-nGVdZfmbBbpt28nNzoOSJFZ8HWsB/exec";
-    const STORAGE_KEY = "stellive_portal_state_v9";
-    const SHEETS_URL_KEY = "stellive_sheets_url_v9";
+    const STORAGE_KEY = "stellive_portal_state_v10";
+    const SHEETS_URL_KEY = "stellive_sheets_url_v10";
 
     const MAIN_ADMIN = {
       id: "dltjdgk0107",
@@ -665,13 +668,23 @@ function uploadBgmToDrive(payload) {
   return { ok: true, fileId: fileId, url: 'gdrive://' + fileId };
 }
 
+function buildJsonResponse(obj, callbackName) {
+  var jsonStr = JSON.stringify(obj);
+  if (callbackName) {
+    var safeCb = String(callbackName).replace(/[^a-zA-Z0-9_$.]/g, '');
+    return ContentService.createTextOutput(safeCb + '(' + jsonStr + ');').setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return ContentService.createTextOutput(jsonStr).setMimeType(ContentService.MimeType.JSON);
+}
+
 function doGet(e) {
+  var callback = (e && e.parameter && e.parameter.callback) ? e.parameter.callback : '';
   try {
     if (e && e.parameter && e.parameter.action === 'getBgmAudio' && e.parameter.fileId) {
       var file = DriveApp.getFileById(e.parameter.fileId);
       var blob = file.getBlob();
       var b64 = Utilities.base64Encode(blob.getBytes());
-      return ContentService.createTextOutput(JSON.stringify({ ok: true, mimeType: blob.getContentType(), base64: b64 })).setMimeType(ContentService.MimeType.JSON);
+      return buildJsonResponse({ ok: true, mimeType: blob.getContentType(), base64: b64 }, callback);
     }
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var data = {
@@ -687,9 +700,9 @@ function doGet(e) {
     for (var i = 0; i < settingsRows.length; i++) {
       if (settingsRows[i].key) data.settings[settingsRows[i].key] = settingsRows[i].value;
     }
-    return ContentService.createTextOutput(JSON.stringify({ ok: true, data: data })).setMimeType(ContentService.MimeType.JSON);
+    return buildJsonResponse({ ok: true, data: data }, callback);
   } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ ok: false, error: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+    return buildJsonResponse({ ok: false, error: err.toString() }, callback);
   }
 }
 
@@ -698,11 +711,11 @@ function doPost(e) {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var payload = JSON.parse(e.postData.contents || '{}');
     if (payload.action === 'uploadBgm') {
-      return ContentService.createTextOutput(JSON.stringify(uploadBgmToDrive(payload))).setMimeType(ContentService.MimeType.JSON);
+      return buildJsonResponse(uploadBgmToDrive(payload), '');
     }
     if (payload.action === 'deleteBgmFile' && payload.fileId) {
       try { DriveApp.getFileById(payload.fileId).setTrashed(true); } catch (err) {}
-      return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(ContentService.MimeType.JSON);
+      return buildJsonResponse({ ok: true }, '');
     }
     var state = payload.data || payload;
     if (state.users) writeSheetData(ss, 'Users', state.users);
@@ -718,9 +731,9 @@ function doPost(e) {
       }
       writeSheetData(ss, 'Site_Settings', arr);
     }
-    return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(ContentService.MimeType.JSON);
+    return buildJsonResponse({ ok: true }, '');
   } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ ok: false, error: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+    return buildJsonResponse({ ok: false, error: err.toString() }, '');
   }
 }`;
 
@@ -749,6 +762,7 @@ function doPost(e) {
     let isBgmPlaying = false;
     let bgmObjectUrlCache = {};
     let memoryBgmFiles = {};
+    let isInitialSyncDone = false;
 
     function getActiveSheetsUrl() {
       const saved = localStorage.getItem(SHEETS_URL_KEY);
@@ -862,15 +876,14 @@ function doPost(e) {
         }
       } catch (e) {}
 
-      // 일반 사용자 기기에서 구글 드라이브 스트리밍 파일 로드
+      // 다른 기기/인앱 브라우저에서 구글 드라이브 스트리밍 파일 로드
       if (track.url && track.url.startsWith("gdrive://")) {
         const fileId = track.url.replace("gdrive://", "").trim();
         const scriptUrl = getActiveSheetsUrl();
         if (scriptUrl && fileId) {
           try {
             showToast("오디오 스트리밍 데이터를 불러오는 중입니다...");
-            const res = await fetch(`${scriptUrl}?action=getBgmAudio&fileId=${encodeURIComponent(fileId)}`);
-            const json = await res.json();
+            const json = await fetchAppsScriptSmart(`${scriptUrl}?action=getBgmAudio&fileId=${encodeURIComponent(fileId)}`);
             if (json && json.ok && json.base64) {
               const byteChars = atob(json.base64);
               const byteNumbers = new Array(byteChars.length);
@@ -921,18 +934,106 @@ function doPost(e) {
       }
     }
 
-    // ================= 초기화 (접속 즉시 구글 시트 자동 동기화) =================
+    // ================= 어떤 기기/인앱 브라우저에서도 동작하는 이중 통신 엔진 =================
+    function loadViaJsonp(baseUrl, timeoutMs = 9000) {
+      return new Promise((resolve, reject) => {
+        const cbName = "__stellive_jsonp_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+        const script = document.createElement("script");
+        let finished = false;
+
+        const cleanup = () => {
+          if (script.parentNode) script.parentNode.removeChild(script);
+          try { delete window[cbName]; } catch (e) { window[cbName] = undefined; }
+        };
+
+        const timer = setTimeout(() => {
+          if (finished) return;
+          finished = true;
+          cleanup();
+          reject(new Error("JSONP timeout"));
+        }, timeoutMs);
+
+        window[cbName] = (data) => {
+          if (finished) return;
+          finished = true;
+          clearTimeout(timer);
+          cleanup();
+          resolve(data);
+        };
+
+        script.onerror = () => {
+          if (finished) return;
+          finished = true;
+          clearTimeout(timer);
+          cleanup();
+          reject(new Error("JSONP script error"));
+        };
+
+        const sep = baseUrl.includes("?") ? "&" : "?";
+        script.src = `${baseUrl}${sep}callback=${cbName}&_t=${Date.now()}`;
+        document.head.appendChild(script);
+      });
+    }
+
+    async function fetchAppsScriptSmart(targetUrl) {
+      const sep = targetUrl.includes("?") ? "&" : "?";
+      const cacheBustedUrl = `${targetUrl}${sep}_t=${Date.now()}`;
+
+      // 1차 시도: 표준 fetch (redirect: follow)
+      try {
+        const controller = new AbortController();
+        const tid = setTimeout(() => controller.abort(), 8000);
+        const res = await fetch(cacheBustedUrl, {
+          method: "GET",
+          redirect: "follow",
+          cache: "no-store",
+          signal: controller.signal
+        });
+        clearTimeout(tid);
+        if (res.ok) {
+          const json = await res.json();
+          if (json && typeof json === "object") return json;
+        }
+      } catch (fetchErr) {
+        console.warn("Fetch blocked or redirected, switching to JSONP fallback:", fetchErr);
+      }
+
+      // 2차 시도: 인앱 브라우저 및 외부 IP CORS 차단을 우회하는 JSONP 스크립트 로더
+      return await loadViaJsonp(targetUrl, 10000);
+    }
+
+    // ================= 초기화 (다른 기기/IP 접속 즉시 구글 시트 자동 동기화) =================
     window.addEventListener("DOMContentLoaded", async () => {
-      loadLocalState();
+      const hasLocalCache = loadLocalState();
       const activeUrl = getActiveSheetsUrl();
       document.getElementById("sheetsUrlInput").value = activeUrl;
       document.getElementById("codeGsPreview").textContent = CODE_GS_TEMPLATE;
 
-      renderAll();
-      setupAudioEvents();
+      renderHeaderLogo();
+      renderHeaderSns();
+      renderBanner();
+      renderAuthControls();
 
-      // 웹사이트 접속 즉시 구글 시트 데이터 자동 불러오기
+      if (hasLocalCache) {
+        renderProjects();
+        renderBgmPlayerSelect();
+      }
+
+      // 어떤 기기·IP에서 들어오든 즉시 구글 시트 데이터 자동 불러오기
       await pullFromSheets(false);
+    });
+
+    // 모바일/인앱 브라우저에서 탭 전환 후 다시 돌아왔을 때도 최신 시트 데이터 자동 반영
+    window.addEventListener("pageshow", (event) => {
+      if (event.persisted || isInitialSyncDone) {
+        pullFromSheets(false);
+      }
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && isInitialSyncDone) {
+        pullFromSheets(false);
+      }
     });
 
     document.addEventListener("click", (e) => {
@@ -952,8 +1053,10 @@ function doPost(e) {
           if (!appState.admins || !appState.admins.some(a => a.id === MAIN_ADMIN.id)) {
             appState.admins = [MAIN_ADMIN, ...(appState.admins || [])];
           }
+          return true;
         }
       } catch (e) {}
+      return false;
     }
 
     function saveLocalState() {
@@ -1844,15 +1947,15 @@ function doPost(e) {
       await pullFromSheets(true);
     }
 
-    async function pullFromSheets(notify = false) {
+    async function pullFromSheets(notify = false, retryCount = 0) {
       const url = getActiveSheetsUrl();
       const statusEl = document.getElementById("sheetsStatusText");
       if (!url) return;
 
       try {
-        statusEl.textContent = "상태: 구글 시트에서 데이터 불러오는 중...";
-        const res = await fetch(url);
-        const json = await res.json();
+        if (statusEl) statusEl.textContent = "상태: 구글 시트에서 데이터 불러오는 중...";
+        const json = await fetchAppsScriptSmart(url);
+
         if (json && json.ok && json.data) {
           const d = json.data;
           if (Array.isArray(d.projects)) appState.projects = d.projects;
@@ -1867,15 +1970,22 @@ function doPost(e) {
             const hasMain = d.admins.some(a => a.id === MAIN_ADMIN.id);
             appState.admins = hasMain ? d.admins : [MAIN_ADMIN, ...d.admins];
           }
+          isInitialSyncDone = true;
           saveLocalState();
           renderAll();
-          statusEl.textContent = "상태: 구글 시트 연결 완료 (자동 동기화 활성)";
+          if (statusEl) statusEl.textContent = "상태: 구글 시트 연결 완료 (전체 기기 자동 동기화 활성)";
           if (notify) showToast("구글 시트 데이터를 성공적으로 불러왔습니다.");
         } else {
           throw new Error("Invalid response");
         }
       } catch (err) {
-        statusEl.textContent = "상태: 연결 확인 필요 (URL 및 모든 사용자 권한 확인)";
+        if (retryCount < 2) {
+          setTimeout(() => pullFromSheets(notify, retryCount + 1), 1000);
+          return;
+        }
+        isInitialSyncDone = true;
+        renderAll();
+        if (statusEl) statusEl.textContent = "상태: 연결 확인 필요 (Code.gs '모든 사용자' 배포 확인)";
         if (notify) showToast("구글 시트 연결에 실패했습니다. URL과 배포 권한을 확인해 주세요.", true);
       }
     }
@@ -1893,13 +2003,13 @@ function doPost(e) {
         });
         const json = await res.json();
         if (json && json.ok) {
-          statusEl.textContent = "상태: 구글 시트 저장 완료";
+          if (statusEl) statusEl.textContent = "상태: 구글 시트 저장 완료";
           if (notify) showToast("전체 데이터가 구글 시트에 저장되었습니다.");
         } else {
           throw new Error(json.error || "Save error");
         }
       } catch (err) {
-        statusEl.textContent = "상태: 시트 저장 실패 (권한 확인 필요)";
+        if (statusEl) statusEl.textContent = "상태: 시트 저장 실패 (권한 확인 필요)";
         if (notify) showToast("구글 시트 저장에 실패했습니다. URL과 배포 권한을 확인해 주세요.", true);
       }
     }

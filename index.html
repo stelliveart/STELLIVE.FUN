@@ -6,7 +6,7 @@
   <title>Stellive Fan Web Portal</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap');
     body {
       font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
       background-color: #F4F6FA;
@@ -39,6 +39,43 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between pb-16 md:pb-0">
 
+  <!-- 순수 흰색 배경 입장 인트로 오버레이 ("STELLIVE.FUN 입장하기") -->
+  <div id="welcomeIntroOverlay" class="fixed inset-0 bg-white z-50 overflow-y-auto flex flex-col items-center justify-center px-5 py-10 transition-opacity duration-300">
+    <div class="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center text-center">
+      <!-- 메인 브랜드 타이틀 -->
+      <h1 class="text-4xl sm:text-5xl font-black tracking-tight text-[#1E2235] mb-8">
+        STELLIVE.FUN
+      </h1>
+
+      <!-- 공지 및 유의사항 카드 -->
+      <div class="w-full rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] p-5 sm:p-6 text-left shadow-xs mb-8">
+        <div class="text-xs sm:text-sm font-extrabold text-[#2563EB] mb-3">
+          [공지 및 유의사항]
+        </div>
+        <ul class="space-y-2 text-xs sm:text-[13px] text-slate-700 font-medium leading-relaxed">
+          <li class="flex items-start gap-2">
+            <span class="text-[#5B6AD0] font-bold">•</span>
+            <span>이 사이트는 스텔라이브 팬 게임 웹사이트입니다.</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="text-[#5B6AD0] font-bold">•</span>
+            <span>입장하기 버튼을 누르면 팬 게임들이 불러와집니다.</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span class="text-[#5B6AD0] font-bold">•</span>
+            <span>새로운 프로젝트나 건의사항은 사이트 내에 건의사항에서 건의 해주세요.</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- STELLIVE.FUN 입장하기 버튼 -->
+      <button type="button" id="welcomePlayBtn" onclick="startPortalExperience()"
+              class="w-full max-w-[260px] py-3.5 px-6 rounded-2xl bg-[#2563EB] hover:bg-[#1D4ED8] active:scale-[0.98] text-white text-sm sm:text-base font-extrabold tracking-tight shadow-[0_10px_25px_rgba(37,99,235,0.25)] cursor-pointer transition">
+        STELLIVE.FUN 입장하기
+      </button>
+    </div>
+  </div>
+
   <!-- 상단 헤더 -->
   <header class="w-full bg-white border-b border-slate-200/80 sticky top-0 z-30">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
@@ -55,8 +92,8 @@
         <div id="headerSnsList" class="flex items-center gap-2 overflow-x-auto custom-scrollbar py-1"></div>
       </div>
 
-      <!-- 우측: 캡슐형 BGM 플레이어 + 건의사항 남기기 + 회원 로그인 + 관리자 콘솔 -->
-      <div class="flex items-center gap-2 shrink-0">
+      <!-- 우측: 캡슐형 BGM 플레이어 + 익명 건의사항 남기기 + 관리자 로그인/콘솔 -->
+      <div class="flex items-center gap-2.5 shrink-0">
         <!-- 데스크톱 캡슐형 BGM 플레이어 -->
         <div class="hidden md:flex items-center gap-2 bg-[#F4F6FA] border border-slate-200/90 rounded-full px-3 py-1.5">
           <button type="button" onclick="prevBgmTrack()" title="이전 곡" class="p-1 text-slate-500 hover:text-[#1E2235] transition">
@@ -79,14 +116,9 @@
           <input id="bgmVolumeSlider" type="range" min="0" max="1" step="0.05" value="0.5" oninput="changeBgmVolume(this.value)" aria-label="볼륨 조절" class="w-14" />
         </div>
 
-        <!-- 플레이리스트 오른쪽에 위치한 건의사항 남기기 버튼 -->
+        <!-- 익명 건의사항 남기기 버튼 -->
         <button type="button" onclick="openSuggestionSubmitModal()" class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition">
           건의사항 남기기
-        </button>
-
-        <!-- 일반 회원 로그인 버튼 -->
-        <button type="button" id="userAuthBtn" onclick="openUserAuthModal()" class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition">
-          회원 로그인
         </button>
 
         <!-- 관리자 로그인 / 콘솔 드롭다운 -->
@@ -146,8 +178,8 @@
               <button type="button" onclick="openSuggestionsAdminModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
                 <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 <div>
-                  <div class="text-xs font-bold text-[#1E2235]">건의사항 및 회원 관리</div>
-                  <div class="text-[11px] text-slate-400">방문자 의견 답변 및 계정 조회</div>
+                  <div class="text-xs font-bold text-[#1E2235]">익명 건의사항 관리</div>
+                  <div class="text-[11px] text-slate-400">방문자 의견 조회 및 삭제</div>
                 </div>
               </button>
               <button type="button" onclick="openAdminsModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
@@ -227,7 +259,7 @@
     © 2026 Stellive Digital Playground. All rights reserved.
   </footer>
 
-  <!-- MP3 및 MP4 오디오 재생용 미디어 요소 -->
+  <!-- MP3 / MP4 / 외부 스트리밍 오디오 재생용 미디어 요소 (CORS 차단 방지 위해 crossorigin 미지정) -->
   <video id="bgmMediaPlayer" preload="auto" playsinline class="hidden"></video>
 
   <!-- 우측 하단 토스트 알림 -->
@@ -256,42 +288,7 @@
     </div>
   </div>
 
-  <!-- 2. 일반 회원 로그인 / 회원가입 모달 (아이디 기반) -->
-  <div id="userAuthModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100">
-      <div class="flex items-center justify-between mb-4">
-        <h3 id="userAuthTitle" class="text-base font-extrabold text-[#1E2235]">회원 로그인</h3>
-        <button type="button" onclick="closeModal('userAuthModal')" class="text-slate-400 hover:text-slate-600 text-xs font-semibold">닫기</button>
-      </div>
-      <div id="userLoggedInBox" class="hidden space-y-4">
-        <div class="p-4 rounded-xl bg-[#F4F6FA] border border-slate-200/80">
-          <div class="text-xs text-slate-500">현재 로그인된 아이디</div>
-          <div id="loggedInUserLabel" class="text-sm font-bold text-[#1E2235] mt-0.5"></div>
-        </div>
-        <button type="button" onclick="logoutMember()" class="w-full py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold transition">로그아웃</button>
-      </div>
-      <form id="userAuthForm" onsubmit="handleUserAuth(event)" class="space-y-3.5">
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">아이디</label>
-          <input id="memberUserIdInput" type="text" required placeholder="예: dode0107" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]" />
-        </div>
-        <div id="memberNicknameField" class="hidden">
-          <label class="block text-xs font-semibold text-slate-600 mb-1">닉네임</label>
-          <input id="memberNicknameInput" type="text" placeholder="표시될 닉네임" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]" />
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">비밀번호</label>
-          <input id="memberPwInput" type="password" required placeholder="비밀번호 입력" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]" />
-        </div>
-        <button id="userAuthSubmitBtn" type="submit" class="w-full py-2.5 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-sm font-bold transition">로그인</button>
-        <div class="text-center pt-1">
-          <button type="button" onclick="toggleUserAuthMode()" id="userAuthSwitchBtn" class="text-xs text-[#5B6AD0] font-semibold hover:underline">계정이 없으신가요? 아이디로 회원가입</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- 3. 프로젝트 등록 / 수정 모달 -->
+  <!-- 2. 프로젝트 등록 / 수정 모달 -->
   <div id="projectModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
       <div class="flex items-center justify-between mb-4">
@@ -302,7 +299,7 @@
         <input type="hidden" id="editProjectId" />
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">프로젝트 제목</label>
-          <input id="projTitle" type="text" required placeholder="예: 아르냥을 던져라!" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]" />
+          <input id="projTitle" type="text" required placeholder="예: 아르냥을 날려라!" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]" />
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">프로젝트 설명</label>
@@ -327,7 +324,7 @@
     </div>
   </div>
 
-  <!-- 4. 웹사이트 설명창 수정 모달 -->
+  <!-- 3. 웹사이트 설명창 수정 모달 -->
   <div id="bannerEditModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
       <div class="flex items-center justify-between mb-4">
@@ -348,7 +345,7 @@
     </div>
   </div>
 
-  <!-- 5. SNS 링크 관리 모달 -->
+  <!-- 4. SNS 링크 관리 모달 -->
   <div id="snsModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 max-h-[88vh] flex flex-col">
       <div class="flex items-center justify-between mb-4">
@@ -399,7 +396,7 @@
     </div>
   </div>
 
-  <!-- 6. BGM 배경음악 설정 모달 -->
+  <!-- 5. BGM 배경음악 설정 모달 -->
   <div id="bgmModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 max-h-[88vh] flex flex-col">
       <div class="flex items-center justify-between mb-4">
@@ -437,7 +434,7 @@
     </div>
   </div>
 
-  <!-- 7. 로고 이미지 업로드 모달 -->
+  <!-- 6. 로고 이미지 업로드 모달 -->
   <div id="logoModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100">
       <div class="flex items-center justify-between mb-4">
@@ -460,11 +457,11 @@
     </div>
   </div>
 
-  <!-- 8. 건의사항 남기기 모달 -->
+  <!-- 7. 익명 건의사항 남기기 모달 -->
   <div id="suggestionSubmitModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-base font-extrabold text-[#1E2235]">건의사항 남기기</h3>
+        <h3 class="text-base font-extrabold text-[#1E2235]">익명 건의사항 남기기</h3>
         <button type="button" onclick="closeModal('suggestionSubmitModal')" class="text-slate-400 hover:text-slate-600 text-xs font-semibold">닫기</button>
       </div>
       <form onsubmit="submitSuggestion(event)" class="space-y-3.5">
@@ -474,34 +471,27 @@
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">내용</label>
-          <textarea id="sugContentInput" rows="4" required placeholder="추가되었으면 하는 프로젝트나 의견을 자유롭게 남겨주세요" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]"></textarea>
+          <textarea id="sugContentInput" rows="4" required placeholder="로그인 없이 익명으로 자유롭게 의견을 남겨주세요" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]"></textarea>
         </div>
-        <button type="submit" class="w-full py-2.5 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-sm font-bold transition">등록하기</button>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-sm font-bold transition">익명으로 등록하기</button>
       </form>
     </div>
   </div>
 
-  <!-- 9. 건의사항 및 회원 목록 모달 -->
+  <!-- 8. 관리자 건의사항 조회 및 삭제 모달 -->
   <div id="suggestionsAdminModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 max-h-[85vh] flex flex-col">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-base font-extrabold text-[#1E2235]">건의사항 및 회원 목록</h3>
+        <h3 class="text-base font-extrabold text-[#1E2235]">접수된 익명 건의사항</h3>
         <button type="button" onclick="closeModal('suggestionsAdminModal')" class="text-slate-400 hover:text-slate-600 text-xs font-semibold">닫기</button>
       </div>
-      <div class="overflow-y-auto custom-scrollbar space-y-5 pr-1">
-        <div>
-          <div class="text-xs font-bold text-[#1E2235] mb-2">접수된 건의사항</div>
-          <div id="adminSuggestionsList" class="space-y-2"></div>
-        </div>
-        <div class="border-t border-slate-100 pt-4">
-          <div class="text-xs font-bold text-[#1E2235] mb-2">가입 회원 목록</div>
-          <div id="adminMembersList" class="space-y-1.5"></div>
-        </div>
+      <div class="overflow-y-auto custom-scrollbar space-y-2.5 pr-1">
+        <div id="adminSuggestionsList" class="space-y-2"></div>
       </div>
     </div>
   </div>
 
-  <!-- 10. 서브 관리자 계정 관리 모달 -->
+  <!-- 9. 서브 관리자 계정 관리 모달 -->
   <div id="adminsModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
       <div class="flex items-center justify-between mb-4">
@@ -519,7 +509,7 @@
     </div>
   </div>
 
-  <!-- 11. 구글 시트 DB 연동 모달 -->
+  <!-- 10. 구글 시트 DB 연동 모달 -->
   <div id="sheetsModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 max-h-[88vh] flex flex-col">
       <div class="flex items-center justify-between mb-4">
@@ -552,9 +542,8 @@
 
   <script>
     // ================= 상수 및 초기 설정 =================
-    const DEFAULT_SHEETS_URL = "https://script.google.com/macros/s/AKfycby0SeuS5Z29oTRiIstdlXWuhyuhKkPTvEhv-Js-nGVdZfmbBbpt28nNzoOSJFZ8HWsB/exec";
-    const STORAGE_KEY = "stellive_portal_state_v11";
-    const SHEETS_URL_KEY = "stellive_sheets_url_v11";
+    const DEFAULT_SHEETS_URL = "https://script.google.com/macros/s/AKfycbwQ5YQEU9znLR-1JOdTDqi-GMA-TaN9hDGIrMOk1bb9QzND1nSrhnS97AOfXRf3NDHh6w/exec";
+    const STORAGE_KEY = "stellive_portal_state_v17";
 
     const MAIN_ADMIN = {
       id: "dltjdgk0107",
@@ -585,7 +574,7 @@
 
     const CODE_GS_TEMPLATE = `/**
  * Stellive Fan Web Portal - Google Sheets & Google Drive Backend (Code.gs)
- * 배포: [배포] > [새 배포] > 유형: [웹 앱] > 실행 사용자: [나] > 액세스 권한: [모든 사용자]
+ * 배포: [배포] > [배포 관리] > 연필 아이콘 > 버전: [새 버전] > 액세스 권한: [모든 사용자]
  */
 var SHEET_SCHEMAS = {
   Users: ['id', 'email', 'nickname', 'password', 'createdAt'],
@@ -752,9 +741,8 @@ function doPost(e) {
       admins: [MAIN_ADMIN]
     };
 
+    let activeSheetsUrl = DEFAULT_SHEETS_URL;
     let currentAdmin = null;
-    let currentMember = null;
-    let isRegisterMode = false;
     let tempProjectThumb = "";
     let tempLogoDataUrl = "";
     let pendingBgmFile = null;
@@ -762,14 +750,59 @@ function doPost(e) {
     let isBgmPlaying = false;
     let bgmObjectUrlCache = {};
     let memoryBgmFiles = {};
-    let isInitialSyncDone = false;
+    let hasStartedExperience = false;
+    let audioContextUnlocked = false;
 
     function getActiveSheetsUrl() {
-      const saved = localStorage.getItem(SHEETS_URL_KEY);
-      if (saved && saved.startsWith("https://script.google.com/")) {
-        return saved;
+      return (activeSheetsUrl || DEFAULT_SHEETS_URL).replace(/^Https:\/\//i, "https://").trim();
+    }
+
+    // ================= 모바일/사파리 오디오 잠금 즉시 해제 =================
+    function unlockBrowserAudioContext() {
+      if (audioContextUnlocked) return;
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          const ctx = new AudioCtx();
+          if (ctx.state === "suspended") {
+            ctx.resume().catch(() => {});
+          }
+          const buffer = ctx.createBuffer(1, 1, 22050);
+          const source = ctx.createBufferSource();
+          source.buffer = buffer;
+          source.connect(ctx.destination);
+          source.start(0);
+        }
+        const mediaEl = document.getElementById("bgmMediaPlayer");
+        if (mediaEl) {
+          mediaEl.muted = false;
+        }
+        audioContextUnlocked = true;
+      } catch (e) {}
+    }
+
+    // ================= 입장 버튼 클릭 즉시 진입 + 구글 시트 동기화 + BGM 자동 시작 =================
+    function startPortalExperience() {
+      unlockBrowserAudioContext();
+
+      const overlay = document.getElementById("welcomeIntroOverlay");
+      if (overlay) {
+        overlay.style.opacity = "0";
+        overlay.style.pointerEvents = "none";
+        setTimeout(() => {
+          overlay.remove();
+        }, 250);
       }
-      return DEFAULT_SHEETS_URL;
+
+      if (hasStartedExperience) return;
+      hasStartedExperience = true;
+
+      // 즉시 구글 시트 데이터 불러오기 + 첫 번째 BGM 재생 시도
+      pullFromSheets(false).then((ok) => {
+        if (ok && appState.bgm && appState.bgm.length > 0) {
+          loadAndPlayTrack(0, true).catch(() => {});
+        }
+      }).catch(() => {});
     }
 
     // ================= 안전 다중 저장 엔진 (메모리 + IndexedDB + Google Drive) =================
@@ -851,61 +884,121 @@ function doPost(e) {
       return null;
     }
 
-    async function getBgmPlayableUrl(track) {
-      if (bgmObjectUrlCache[track.id]) {
-        return bgmObjectUrlCache[track.id];
+    // ================= Google Drive & 외부 음원 다중 폴백 URL 생성기 =================
+    function extractTrackUrl(track) {
+      if (!track || typeof track !== "object") return "";
+      const candidates = [track.url, track.URL, track.audioUrl, track.src, track.link, track.Link, track["주소"]];
+      for (const val of candidates) {
+        if (val !== null && val !== undefined && String(val).trim() !== "") {
+          return String(val).trim();
+        }
       }
-      if (memoryBgmFiles[track.id]) {
-        const url = URL.createObjectURL(memoryBgmFiles[track.id]);
-        bgmObjectUrlCache[track.id] = url;
-        return url;
+      return "";
+    }
+
+    function extractGoogleDriveFileId(rawUrl) {
+      if (!rawUrl) return "";
+      const trimmed = String(rawUrl).trim();
+      if (trimmed.startsWith("gdrive://")) {
+        return trimmed.replace("gdrive://", "").split(/[?#&]/)[0].trim();
       }
+      const matchFileD = trimmed.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/i);
+      if (matchFileD && matchFileD[1]) return matchFileD[1];
+
+      const matchIdParam = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/i);
+      if (matchIdParam && matchIdParam[1] && /google\.com/i.test(trimmed)) return matchIdParam[1];
+
+      return "";
+    }
+
+    function buildAudioCandidateUrls(rawUrl) {
+      if (!rawUrl) return [];
+      const driveId = extractGoogleDriveFileId(rawUrl);
+      if (driveId) {
+        return [
+          `https://drive.usercontent.google.com/download?id=${driveId}&export=download`,
+          `https://docs.google.com/uc?export=open&id=${driveId}`,
+          `https://drive.google.com/uc?export=download&id=${driveId}`
+        ];
+      }
+      if (!/^https?:\/\//i.test(rawUrl) && !rawUrl.startsWith("blob:") && !rawUrl.startsWith("data:")) {
+        return ["https://" + rawUrl.replace(/^\/+/, "")];
+      }
+      return [rawUrl];
+    }
+
+    async function fetchGoogleDriveAudioBlob(fileId, trackId, silent = false) {
+      const scriptUrl = getActiveSheetsUrl();
+      if (!scriptUrl || !fileId) return null;
       try {
-        const db = await openBgmDb();
-        const record = await new Promise((resolve) => {
-          const tx = db.transaction("tracks", "readonly");
-          const req = tx.objectStore("tracks").get(track.id);
-          req.onsuccess = () => resolve(req.result || null);
-          req.onerror = () => resolve(null);
-        });
-        if (record && record.buffer) {
-          const blob = new Blob([record.buffer], { type: record.type || "audio/mpeg" });
-          const url = URL.createObjectURL(blob);
-          bgmObjectUrlCache[track.id] = url;
-          return url;
-        }
-      } catch (e) {}
-
-      // 다른 기기/인앱 브라우저에서 구글 드라이브 스트리밍 파일 로드
-      if (track.url && track.url.startsWith("gdrive://")) {
-        const fileId = track.url.replace("gdrive://", "").trim();
-        const scriptUrl = getActiveSheetsUrl();
-        if (scriptUrl && fileId) {
-          try {
-            showToast("오디오 스트리밍 데이터를 불러오는 중입니다...");
-            const json = await fetchAppsScriptSmart(`${scriptUrl}?action=getBgmAudio&fileId=${encodeURIComponent(fileId)}`);
-            if (json && json.ok && json.base64) {
-              const byteChars = atob(json.base64);
-              const byteNumbers = new Array(byteChars.length);
-              for (let i = 0; i < byteChars.length; i++) {
-                byteNumbers[i] = byteChars.charCodeAt(i);
-              }
-              const byteArray = new Uint8Array(byteNumbers);
-              const blob = new Blob([byteArray], { type: json.mimeType || "audio/mpeg" });
-              const objUrl = URL.createObjectURL(blob);
-              bgmObjectUrlCache[track.id] = objUrl;
-              return objUrl;
-            }
-          } catch (err) {
-            console.error("Google Drive BGM stream error:", err);
+        if (!silent) showToast("오디오 스트리밍 데이터를 불러오는 중입니다...");
+        const json = await fetchAppsScriptSmart(`${scriptUrl}?action=getBgmAudio&fileId=${encodeURIComponent(fileId)}`);
+        if (json && json.ok && json.base64) {
+          const byteChars = atob(json.base64);
+          const byteNumbers = new Array(byteChars.length);
+          for (let i = 0; i < byteChars.length; i++) {
+            byteNumbers[i] = byteChars.charCodeAt(i);
           }
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], { type: json.mimeType || "audio/mpeg" });
+          const objUrl = URL.createObjectURL(blob);
+          bgmObjectUrlCache[trackId] = objUrl;
+          return objUrl;
         }
-      }
-
-      if (track.url && !track.url.startsWith("local_idb://") && !track.url.startsWith("gdrive://")) {
-        return track.url;
+      } catch (err) {
+        console.warn("Apps Script BGM stream fallback:", err);
       }
       return null;
+    }
+
+    async function getBgmCandidateSources(track, silent = false) {
+      const sources = [];
+
+      // 1. 메모리/ObjectURL 캐시
+      if (bgmObjectUrlCache[track.id]) {
+        sources.push(bgmObjectUrlCache[track.id]);
+      } else if (memoryBgmFiles[track.id]) {
+        try {
+          const url = URL.createObjectURL(memoryBgmFiles[track.id]);
+          bgmObjectUrlCache[track.id] = url;
+          sources.push(url);
+        } catch (e) {}
+      }
+
+      // 2. IndexedDB 로컬 저장소
+      if (sources.length === 0) {
+        try {
+          const db = await openBgmDb();
+          const record = await new Promise((resolve) => {
+            const tx = db.transaction("tracks", "readonly");
+            const req = tx.objectStore("tracks").get(track.id);
+            req.onsuccess = () => resolve(req.result || null);
+            req.onerror = () => resolve(null);
+          });
+          if (record && record.buffer) {
+            const blob = new Blob([record.buffer], { type: record.type || "audio/mpeg" });
+            const url = URL.createObjectURL(blob);
+            bgmObjectUrlCache[track.id] = url;
+            sources.push(url);
+          }
+        } catch (e) {}
+      }
+
+      // 3. Google Drive 및 외부 음원 URL 다중 후보
+      const rawUrl = extractTrackUrl(track);
+      const driveId = extractGoogleDriveFileId(rawUrl);
+
+      if (driveId) {
+        // Apps Script base64 스트리밍 우선 시도 후 Google Drive 직접 스트리밍 폴백 추가
+        const blobUrl = await fetchGoogleDriveAudioBlob(driveId, track.id, silent);
+        if (blobUrl) sources.push(blobUrl);
+        sources.push(...buildAudioCandidateUrls(rawUrl));
+      } else if (rawUrl && !rawUrl.startsWith("local_idb://")) {
+        sources.push(...buildAudioCandidateUrls(rawUrl));
+      }
+
+      // 중복 제거
+      return [...new Set(sources.filter(Boolean))];
     }
 
     async function deleteBgmBlobFromDb(track) {
@@ -921,24 +1014,27 @@ function doPost(e) {
         tx.objectStore("tracks").delete(id);
       } catch (e) {}
 
-      if (track.url && track.url.startsWith("gdrive://")) {
-        const fileId = track.url.replace("gdrive://", "").trim();
-        const scriptUrl = getActiveSheetsUrl();
-        if (scriptUrl && fileId) {
-          fetch(scriptUrl, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ action: "deleteBgmFile", fileId: fileId })
-          }).catch(() => {});
-        }
+      const rawUrl = extractTrackUrl(track);
+      const fileId = extractGoogleDriveFileId(rawUrl);
+      const scriptUrl = getActiveSheetsUrl();
+      if (scriptUrl && fileId) {
+        fetch(scriptUrl, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "deleteBgmFile", fileId: fileId })
+        }).catch(() => {});
       }
     }
 
-    // ================= 3중 자동 우회 통신 엔진 (Fetch -> 순수 영숫자 JSONP -> CORS 프록시 폴백) =================
+    // ================= 3중 자동 우회 통신 엔진 (Fetch -> 순수 영숫자 JSONP -> AllOrigins 프록시) =================
     function loadViaJsonp(baseUrl, timeoutMs = 9000) {
       return new Promise((resolve, reject) => {
-        // 순수 영숫자 콜백명 사용 (특수문자 필터링으로 인한 콜백 유실 원천 차단)
-        const cbName = "stelliveJsonpCb" + Date.now() + Math.floor(Math.random() * 100000);
+        const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        let randPart = "";
+        for (let i = 0; i < 10; i++) {
+          randPart += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        const cbName = "cb" + randPart;
         const script = document.createElement("script");
         let finished = false;
 
@@ -971,47 +1067,42 @@ function doPost(e) {
         };
 
         const sep = baseUrl.includes("?") ? "&" : "?";
-        script.src = `${baseUrl}${sep}callback=${cbName}&t=${Date.now()}`;
+        script.src = `${baseUrl}${sep}callback=${cbName}&_t=${Date.now()}`;
         (document.head || document.body || document.documentElement).appendChild(script);
       });
     }
 
-    async function loadViaCorsProxy(targetUrl) {
-      const proxies = [
-        (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-        (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`
-      ];
-
-      for (const buildProxyUrl of proxies) {
-        try {
-          const controller = new AbortController();
-          const tid = setTimeout(() => controller.abort(), 9000);
-          const res = await fetch(buildProxyUrl(targetUrl), {
-            method: "GET",
-            cache: "no-store",
-            signal: controller.signal
-          });
-          clearTimeout(tid);
-          if (res.ok) {
-            const text = await res.text();
-            const json = JSON.parse(text);
-            if (json && typeof json === "object") return json;
-          }
-        } catch (err) {
-          console.warn("CORS proxy fallback attempt failed:", err);
-        }
+    async function loadViaAllOriginsProxy(targetUrl) {
+      const controller = new AbortController();
+      const tid = setTimeout(() => controller.abort(), 9500);
+      try {
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+        const res = await fetch(proxyUrl, {
+          method: "GET",
+          cache: "no-store",
+          signal: controller.signal
+        });
+        clearTimeout(tid);
+        if (!res.ok) throw new Error("Proxy status " + res.status);
+        const text = await res.text();
+        const json = JSON.parse(text);
+        if (json && typeof json === "object") return json;
+        throw new Error("Invalid proxy JSON");
+      } catch (err) {
+        clearTimeout(tid);
+        throw err;
       }
-      throw new Error("All CORS proxies failed");
     }
 
     async function fetchAppsScriptSmart(targetUrl) {
-      const sep = targetUrl.includes("?") ? "&" : "?";
-      const cacheBustedUrl = `${targetUrl}${sep}t=${Date.now()}`;
+      const normalizedUrl = targetUrl.replace(/^Https:\/\//i, "https://").trim();
+      const sep = normalizedUrl.includes("?") ? "&" : "?";
+      const cacheBustedUrl = `${normalizedUrl}${sep}_t=${Date.now()}`;
 
       // 1차 시도: 표준 fetch (redirect: follow)
       try {
         const controller = new AbortController();
-        const tid = setTimeout(() => controller.abort(), 7500);
+        const tid = setTimeout(() => controller.abort(), 8500);
         const res = await fetch(cacheBustedUrl, {
           method: "GET",
           redirect: "follow",
@@ -1025,25 +1116,29 @@ function doPost(e) {
           if (json && typeof json === "object") return json;
         }
       } catch (fetchErr) {
-        console.warn("1st fetch attempt failed, trying JSONP:", fetchErr);
+        console.warn("1st fetch attempt failed, falling back to JSONP:", fetchErr);
       }
 
-      // 2차 시도: 순수 영숫자 콜백 JSONP 스크립트 로더
+      // 2차 시도: 순수 영숫자 콜백 JSONP
       try {
-        const jsonpRes = await loadViaJsonp(targetUrl, 8500);
+        const jsonpRes = await loadViaJsonp(normalizedUrl, 8500);
         if (jsonpRes && typeof jsonpRes === "object") return jsonpRes;
       } catch (jsonpErr) {
-        console.warn("2nd JSONP attempt failed, trying CORS proxy:", jsonpErr);
+        console.warn("2nd JSONP attempt failed, falling back to AllOrigins proxy:", jsonpErr);
       }
 
-      // 3차 시도: 사파리 ITP / 인앱 브라우저 스크립트 차단 우회용 CORS 프록시
-      return await loadViaCorsProxy(cacheBustedUrl);
+      // 3차 시도: AllOrigins 프록시 폴백
+      return await loadViaAllOriginsProxy(cacheBustedUrl);
     }
 
-    // ================= 초기화 (다른 기기/IP 접속 즉시 구글 시트 자동 동기화) =================
-    window.addEventListener("DOMContentLoaded", async () => {
+    // ================= 초기화 =================
+    window.addEventListener("DOMContentLoaded", () => {
       setupAudioEvents();
-      const hasLocalCache = loadLocalState();
+      const playBtn = document.getElementById("welcomePlayBtn");
+      if (playBtn) {
+        playBtn.addEventListener("click", startPortalExperience);
+      }
+
       const activeUrl = getActiveSheetsUrl();
       document.getElementById("sheetsUrlInput").value = activeUrl;
       document.getElementById("codeGsPreview").textContent = CODE_GS_TEMPLATE;
@@ -1052,27 +1147,6 @@ function doPost(e) {
       renderHeaderSns();
       renderBanner();
       renderAuthControls();
-
-      if (hasLocalCache) {
-        renderProjects();
-        renderBgmPlayerSelect();
-      }
-
-      // 어떤 기기·IP에서 들어오든 즉시 구글 시트 데이터 자동 불러오기
-      await pullFromSheets(false);
-    });
-
-    // 모바일/인앱 브라우저에서 탭 전환 후 다시 돌아왔을 때도 최신 시트 데이터 자동 반영
-    window.addEventListener("pageshow", (event) => {
-      if (event.persisted || isInitialSyncDone) {
-        pullFromSheets(false);
-      }
-    });
-
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible" && isInitialSyncDone) {
-        pullFromSheets(false);
-      }
     });
 
     document.addEventListener("click", (e) => {
@@ -1082,21 +1156,6 @@ function doPost(e) {
         menu.classList.add("hidden");
       }
     });
-
-    function loadLocalState() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          appState = { ...appState, ...parsed };
-          if (!appState.admins || !appState.admins.some(a => a.id === MAIN_ADMIN.id)) {
-            appState.admins = [MAIN_ADMIN, ...(appState.admins || [])];
-          }
-          return true;
-        }
-      } catch (e) {}
-      return false;
-    }
 
     function saveLocalState() {
       try {
@@ -1171,6 +1230,85 @@ function doPost(e) {
       }
     }
 
+    // ================= 프로젝트 URL 정규화 및 안전 이동 헬퍼 =================
+    function extractProjectUrl(proj) {
+      if (!proj || typeof proj !== "object") return "";
+      const candidates = [
+        proj.url,
+        proj.URL,
+        proj.link,
+        proj.Link,
+        proj.href,
+        proj.siteUrl,
+        proj["주소"],
+        proj["링크"]
+      ];
+      for (const val of candidates) {
+        if (val !== null && val !== undefined && String(val).trim() !== "") {
+          return String(val).trim();
+        }
+      }
+      return "";
+    }
+
+    function normalizeProjectUrl(rawUrl) {
+      if (rawUrl === null || rawUrl === undefined) return "";
+      let trimmed = String(rawUrl).trim();
+      if (!trimmed) return "";
+
+      if (/^(javascript|data|vbscript):/i.test(trimmed)) {
+        return "";
+      }
+
+      if (!/^https?:\/\//i.test(trimmed)) {
+        trimmed = trimmed.replace(/^\/+/, "");
+        trimmed = "https://" + trimmed;
+      }
+
+      try {
+        const parsed = new URL(trimmed);
+        if (!parsed.hostname || !parsed.hostname.includes(".")) {
+          return "";
+        }
+        return parsed.href;
+      } catch (e) {
+        return "";
+      }
+    }
+
+    function openProjectShortcut(event, rawUrl) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+
+      const validUrl = normalizeProjectUrl(rawUrl);
+      if (!validUrl) {
+        showToast("유효하지 않거나 비어 있는 프로젝트 주소입니다.", true);
+        return false;
+      }
+
+      let opened = null;
+      try {
+        opened = window.open(validUrl, "_blank", "noopener,noreferrer");
+      } catch (err) {
+        opened = null;
+      }
+
+      if (!opened || opened.closed || typeof opened.closed === "undefined") {
+        try {
+          if (window.top && window.top !== window.self) {
+            window.top.location.href = validUrl;
+          } else {
+            window.location.href = validUrl;
+          }
+        } catch (navErr) {
+          window.location.href = validUrl;
+        }
+      }
+      return false;
+    }
+
     function renderProjects() {
       const grid = document.getElementById("projectsGrid");
       const sorted = [...(appState.projects || [])].sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
@@ -1181,41 +1319,49 @@ function doPost(e) {
       }
 
       grid.innerHTML = sorted.map(proj => {
+        const rawUrl = extractProjectUrl(proj);
+        const normalizedUrl = normalizeProjectUrl(rawUrl);
+        const displayHref = normalizedUrl || "#";
+        const encodedRawUrl = escapeHtml(rawUrl);
+
         const hasThumb = proj.thumbnail && proj.thumbnail.trim() !== "";
         const thumbHtml = hasThumb
-          ? `<img src="${escapeHtml(proj.thumbnail)}" alt="${escapeHtml(proj.title)}" onerror="handleThumbError(this)" class="w-full h-full object-cover" />`
+          ? `<img src="${escapeHtml(proj.thumbnail)}" alt="${escapeHtml(proj.title)}" onerror="handleThumbError(this)" class="w-full h-full object-cover transition duration-300 group-hover:scale-105" />`
           : `<span class="text-sm font-extrabold text-[#5B6AD0]">Stellive Project</span>`;
 
         const adminActions = currentAdmin ? `
-          <div class="grid grid-cols-3 gap-2 mt-2.5 pt-2.5 border-t border-slate-100">
-            <button type="button" onclick="togglePinProject('${proj.id}')" class="py-1.5 rounded-lg border ${proj.isPinned ? 'border-[#5B6AD0] bg-indigo-50 text-[#5B6AD0]' : 'border-slate-200 text-slate-600 hover:bg-slate-50'} text-xs font-semibold transition">
+          <div onclick="event.stopPropagation()" class="grid grid-cols-3 gap-2 mt-2.5 pt-2.5 border-t border-slate-100">
+            <button type="button" onclick="event.stopPropagation(); togglePinProject('${proj.id}')" class="py-1.5 rounded-lg border ${proj.isPinned ? 'border-[#5B6AD0] bg-indigo-50 text-[#5B6AD0]' : 'border-slate-200 text-slate-600 hover:bg-slate-50'} text-xs font-semibold transition">
               ${proj.isPinned ? '고정됨' : '고정'}
             </button>
-            <button type="button" onclick="openEditProjectModal('${proj.id}')" class="py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold transition">
+            <button type="button" onclick="event.stopPropagation(); openEditProjectModal('${proj.id}')" class="py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold transition">
               수정
             </button>
-            <button type="button" onclick="deleteProject('${proj.id}')" class="py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold transition">
+            <button type="button" onclick="event.stopPropagation(); deleteProject('${proj.id}')" class="py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold transition">
               삭제
             </button>
           </div>
         ` : "";
 
         return `
-          <article class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col justify-between transition hover:shadow-md">
+          <article onclick="openProjectShortcut(event, '${encodedRawUrl}')"
+                   class="group cursor-pointer bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col justify-between transition hover:shadow-md hover:border-[#5B6AD0]/50">
             <div>
               <div class="w-full h-44 bg-[#EAEFF8] flex items-center justify-center overflow-hidden">
                 ${thumbHtml}
               </div>
               <div class="p-5 pb-3">
                 <div class="flex items-center justify-between gap-2 mb-1.5">
-                  <h2 class="text-base font-extrabold text-[#1E2235] truncate">${escapeHtml(proj.title)}</h2>
+                  <h2 class="text-base font-extrabold text-[#1E2235] truncate group-hover:text-[#5B6AD0] transition">${escapeHtml(proj.title)}</h2>
                   ${proj.isPinned ? '<span class="px-2 py-0.5 rounded-md bg-indigo-50 text-[#5B6AD0] text-[10px] font-bold shrink-0">고정</span>' : ''}
                 </div>
                 <p class="text-xs text-slate-500 leading-relaxed line-clamp-2 min-h-[2.4rem]">${escapeHtml(proj.description)}</p>
               </div>
             </div>
             <div class="px-5 pb-5">
-              <a href="${escapeHtml(proj.url)}" target="_blank" rel="noopener noreferrer" class="block w-full py-2.5 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-center text-xs font-bold transition shadow-xs">
+              <a href="${escapeHtml(displayHref)}" target="_blank" rel="noopener noreferrer"
+                 onclick="return openProjectShortcut(event, '${encodedRawUrl}')"
+                 class="block w-full py-2.5 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-center text-xs font-bold transition shadow-xs">
                 바로가기
               </a>
               ${adminActions}
@@ -1229,7 +1375,6 @@ function doPost(e) {
       const adminLoginBtn = document.getElementById("adminLoginBtn");
       const adminConsoleBtn = document.getElementById("adminConsoleBtn");
       const heroEditDescBtn = document.getElementById("heroEditDescBtn");
-      const userAuthBtn = document.getElementById("userAuthBtn");
 
       if (currentAdmin) {
         adminLoginBtn.classList.add("hidden");
@@ -1241,12 +1386,6 @@ function doPost(e) {
         adminLoginBtn.classList.remove("hidden");
         adminConsoleBtn.classList.add("hidden");
         heroEditDescBtn.classList.add("hidden");
-      }
-
-      if (currentMember) {
-        userAuthBtn.textContent = currentMember.nickname || currentMember.id;
-      } else {
-        userAuthBtn.textContent = "회원 로그인";
       }
     }
 
@@ -1264,7 +1403,7 @@ function doPost(e) {
       document.getElementById("adminDropdownMenu").classList.toggle("hidden");
     }
 
-    // ================= 관리자 및 일반 회원 인증 =================
+    // ================= 관리자 인증 =================
     function openAdminLoginModal() {
       openModal("adminLoginModal");
     }
@@ -1292,79 +1431,6 @@ function doPost(e) {
       showToast("관리자 로그아웃되었습니다.");
     }
 
-    function openUserAuthModal() {
-      isRegisterMode = false;
-      updateUserAuthModalUI();
-      openModal("userAuthModal");
-    }
-
-    function toggleUserAuthMode() {
-      isRegisterMode = !isRegisterMode;
-      updateUserAuthModalUI();
-    }
-
-    function updateUserAuthModalUI() {
-      const loggedBox = document.getElementById("userLoggedInBox");
-      const form = document.getElementById("userAuthForm");
-      if (currentMember) {
-        loggedBox.classList.remove("hidden");
-        form.classList.add("hidden");
-        document.getElementById("loggedInUserLabel").textContent = `${currentMember.id} (${currentMember.nickname || currentMember.id})`;
-        return;
-      }
-      loggedBox.classList.add("hidden");
-      form.classList.remove("hidden");
-      document.getElementById("userAuthTitle").textContent = isRegisterMode ? "회원가입" : "회원 로그인";
-      document.getElementById("memberNicknameField").classList.toggle("hidden", !isRegisterMode);
-      document.getElementById("userAuthSubmitBtn").textContent = isRegisterMode ? "아이디로 가입하기" : "로그인";
-      document.getElementById("userAuthSwitchBtn").textContent = isRegisterMode ? "이미 계정이 있으신가요? 로그인" : "계정이 없으신가요? 아이디로 회원가입";
-    }
-
-    async function handleUserAuth(e) {
-      e.preventDefault();
-      const userId = document.getElementById("memberUserIdInput").value.trim();
-      const nickname = document.getElementById("memberNicknameInput").value.trim() || userId;
-      const pw = document.getElementById("memberPwInput").value;
-
-      if (isRegisterMode) {
-        if ((appState.users || []).some(u => u.id === userId || u.email === userId)) {
-          showToast("이미 사용 중인 아이디입니다.", true);
-          return;
-        }
-        const newUser = {
-          id: userId,
-          email: userId,
-          nickname: nickname,
-          password: pw,
-          createdAt: new Date().toISOString()
-        };
-        appState.users.push(newUser);
-        currentMember = newUser;
-        saveLocalState();
-        closeModal("userAuthModal");
-        renderAuthControls();
-        showToast("회원가입이 완료되었습니다.");
-        await pushAllToSheets(false);
-      } else {
-        const found = (appState.users || []).find(u => (u.id === userId || u.email === userId) && u.password === pw);
-        if (found) {
-          currentMember = found;
-          closeModal("userAuthModal");
-          renderAuthControls();
-          showToast(`${found.nickname || found.id}님 환영합니다.`);
-        } else {
-          showToast("아이디 또는 비밀번호를 확인해 주세요.", true);
-        }
-      }
-    }
-
-    function logoutMember() {
-      currentMember = null;
-      closeModal("userAuthModal");
-      renderAuthControls();
-      showToast("로그아웃되었습니다.");
-    }
-
     // ================= 프로젝트 등록/수정 =================
     function openProjectModal() {
       document.getElementById("projectModalTitle").textContent = "프로젝트 등록";
@@ -1385,7 +1451,7 @@ function doPost(e) {
       document.getElementById("editProjectId").value = proj.id;
       document.getElementById("projTitle").value = proj.title;
       document.getElementById("projDesc").value = proj.description;
-      document.getElementById("projUrl").value = proj.url;
+      document.getElementById("projUrl").value = extractProjectUrl(proj);
       document.getElementById("projThumbFile").value = "";
       tempProjectThumb = proj.thumbnail || "";
       document.getElementById("projThumbPreviewBox").innerHTML = tempProjectThumb
@@ -1414,7 +1480,13 @@ function doPost(e) {
       const editId = document.getElementById("editProjectId").value;
       const title = document.getElementById("projTitle").value.trim();
       const description = document.getElementById("projDesc").value.trim();
-      const url = document.getElementById("projUrl").value.trim();
+      const rawUrl = document.getElementById("projUrl").value.trim();
+      const url = normalizeProjectUrl(rawUrl);
+
+      if (!url) {
+        showToast("올바른 바로가기 URL 주소를 입력해 주세요.", true);
+        return;
+      }
 
       if (editId) {
         const idx = appState.projects.findIndex(p => p.id === editId);
@@ -1699,7 +1771,7 @@ function doPost(e) {
       await pushAllToSheets(false);
     }
 
-    // ================= BGM 순차 재생 엔진 =================
+    // ================= BGM 다중 폴백 순차 재생 엔진 =================
     function renderBgmPlayerSelect() {
       const selDesktop = document.getElementById("bgmTrackSelect");
       const selMobile = document.getElementById("bgmTrackSelectMobile");
@@ -1749,9 +1821,63 @@ function doPost(e) {
       });
     }
 
-    async function loadAndPlayTrack(index) {
+    function tryPlayMediaSource(audioEl, srcUrl) {
+      return new Promise((resolve, reject) => {
+        let settled = false;
+        const cleanup = () => {
+          audioEl.removeEventListener("error", onError);
+          audioEl.removeEventListener("playing", onPlaying);
+          clearTimeout(timer);
+        };
+        const onError = () => {
+          if (settled) return;
+          settled = true;
+          cleanup();
+          reject(new Error("Media load/decode error"));
+        };
+        const onPlaying = () => {
+          if (settled) return;
+          settled = true;
+          cleanup();
+          resolve(true);
+        };
+        const timer = setTimeout(() => {
+          if (settled) return;
+          settled = true;
+          cleanup();
+          reject(new Error("Media timeout"));
+        }, 8000);
+
+        audioEl.addEventListener("error", onError);
+        audioEl.addEventListener("playing", onPlaying);
+
+        audioEl.src = srcUrl;
+        audioEl.load();
+        const playPromise = audioEl.play();
+        if (playPromise && typeof playPromise.then === "function") {
+          playPromise
+            .then(() => {
+              if (!settled) {
+                settled = true;
+                cleanup();
+                resolve(true);
+              }
+            })
+            .catch((err) => {
+              if (!settled) {
+                settled = true;
+                cleanup();
+                reject(err);
+              }
+            });
+        }
+      });
+    }
+
+    async function loadAndPlayTrack(index, silent = false) {
+      unlockBrowserAudioContext();
       if (!appState.bgm || appState.bgm.length === 0) {
-        showToast("등록된 BGM이 없습니다.", true);
+        if (!silent) showToast("등록된 BGM이 없습니다.", true);
         return;
       }
       currentBgmIndex = index % appState.bgm.length;
@@ -1764,31 +1890,51 @@ function doPost(e) {
       if (selDesktop) selDesktop.value = String(currentBgmIndex);
       if (selMobile) selMobile.value = String(currentBgmIndex);
 
-      const srcUrl = await getBgmPlayableUrl(track);
-      if (!srcUrl) {
-        showToast("오디오 파일을 불러올 수 없습니다.", true);
+      const candidates = await getBgmCandidateSources(track, silent);
+      if (!candidates || candidates.length === 0) {
+        if (!silent) showToast("재생 가능한 오디오 주소를 찾을 수 없습니다.", true);
         return;
       }
 
-      audio.src = srcUrl;
-      try {
-        await audio.play();
-      } catch (err) {
-        showToast("재생 버튼을 한 번 더 눌러주세요.");
+      let played = false;
+      let lastErr = null;
+      for (const candidateUrl of candidates) {
+        try {
+          await tryPlayMediaSource(audio, candidateUrl);
+          played = true;
+          break;
+        } catch (err) {
+          lastErr = err;
+        }
+      }
+
+      if (!played) {
+        if (!silent) {
+          if (lastErr && lastErr.name === "NotAllowedError") {
+            showToast("상단 재생(▶) 버튼을 한 번 더 눌러주세요.");
+          } else {
+            showToast("오디오 스트리밍 연결에 실패했습니다. 드라이브 공유 권한을 확인해 주세요.", true);
+          }
+        }
       }
     }
 
     async function toggleBgmPlay() {
+      unlockBrowserAudioContext();
       const audio = document.getElementById("bgmMediaPlayer");
       if (!appState.bgm || appState.bgm.length === 0) {
         showToast("등록된 BGM이 없습니다.", true);
         return;
       }
       if (audio.paused) {
-        if (!audio.src) {
+        if (!audio.src || audio.error) {
           await loadAndPlayTrack(currentBgmIndex);
         } else {
-          await audio.play();
+          try {
+            await audio.play();
+          } catch (e) {
+            await loadAndPlayTrack(currentBgmIndex);
+          }
         }
       } else {
         audio.pause();
@@ -1864,7 +2010,7 @@ function doPost(e) {
       await pushAllToSheets(false);
     }
 
-    // ================= 건의사항 및 서브 관리자 관리 =================
+    // ================= 익명 건의사항 및 서브 관리자 관리 =================
     function openSuggestionSubmitModal() {
       openModal("suggestionSubmitModal");
     }
@@ -1875,9 +2021,9 @@ function doPost(e) {
       const content = document.getElementById("sugContentInput").value.trim();
       appState.suggestions.push({
         id: "sug_" + Date.now(),
-        userId: currentMember ? currentMember.id : "guest",
-        userNickname: currentMember ? (currentMember.nickname || currentMember.id) : "방문자",
-        userEmail: currentMember ? currentMember.id : "guest",
+        userId: "anonymous",
+        userNickname: "익명",
+        userEmail: "anonymous",
         category: "일반",
         title,
         content,
@@ -1890,32 +2036,33 @@ function doPost(e) {
       document.getElementById("sugContentInput").value = "";
       saveLocalState();
       closeModal("suggestionSubmitModal");
-      showToast("건의사항이 등록되었습니다.");
+      showToast("익명 건의사항이 등록되었습니다.");
       await pushAllToSheets(false);
     }
 
     function openSuggestionsAdminModal() {
       const sugList = document.getElementById("adminSuggestionsList");
       sugList.innerHTML = (appState.suggestions || []).length === 0
-        ? `<div class="text-xs text-slate-400">접수된 건의사항이 없습니다.</div>`
+        ? `<div class="text-xs text-slate-400 py-4 text-center">접수된 익명 건의사항이 없습니다.</div>`
         : appState.suggestions.map(s => `
-          <div class="p-3 rounded-xl border border-slate-200 text-xs space-y-1">
-            <div class="font-bold text-[#1E2235]">${escapeHtml(s.title)} <span class="text-slate-400 font-normal">(${escapeHtml(s.userNickname)})</span></div>
-            <div class="text-slate-600">${escapeHtml(s.content)}</div>
-          </div>
-        `).join("");
-
-      const memList = document.getElementById("adminMembersList");
-      memList.innerHTML = (appState.users || []).length === 0
-        ? `<div class="text-xs text-slate-400">가입된 회원이 없습니다.</div>`
-        : appState.users.map(u => `
-          <div class="px-3 py-2 rounded-xl bg-[#F4F6FA] text-xs flex justify-between">
-            <span class="font-bold text-[#1E2235]">${escapeHtml(u.id)}</span>
-            <span class="text-slate-500">${escapeHtml(u.nickname || u.id)}</span>
+          <div class="p-3 rounded-xl border border-slate-200 text-xs flex items-start justify-between gap-2.5">
+            <div class="space-y-1 min-w-0">
+              <div class="font-bold text-[#1E2235]">${escapeHtml(s.title)} <span class="text-slate-400 font-normal">(${escapeHtml(s.userNickname || '익명')})</span></div>
+              <div class="text-slate-600 whitespace-pre-line break-words">${escapeHtml(s.content)}</div>
+            </div>
+            <button type="button" onclick="deleteSuggestion('${s.id}')" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 text-[11px] font-semibold shrink-0">삭제</button>
           </div>
         `).join("");
 
       openModal("suggestionsAdminModal");
+    }
+
+    async function deleteSuggestion(id) {
+      appState.suggestions = (appState.suggestions || []).filter(s => s.id !== id);
+      saveLocalState();
+      openSuggestionsAdminModal();
+      showToast("건의사항이 삭제되었습니다.");
+      await pushAllToSheets(false);
     }
 
     function openAdminsModal() {
@@ -1980,16 +2127,16 @@ function doPost(e) {
     }
 
     async function saveAndTestSheetsUrl() {
-      const url = document.getElementById("sheetsUrlInput").value.trim();
+      const url = document.getElementById("sheetsUrlInput").value.trim().replace(/^Https:\/\//i, "https://");
       if (!url) return;
-      localStorage.setItem(SHEETS_URL_KEY, url);
+      activeSheetsUrl = url;
       await pullFromSheets(true);
     }
 
     async function pullFromSheets(notify = false, retryCount = 0) {
       const url = getActiveSheetsUrl();
       const statusEl = document.getElementById("sheetsStatusText");
-      if (!url) return;
+      if (!url) return false;
 
       try {
         if (statusEl) statusEl.textContent = "상태: 구글 시트에서 데이터 불러오는 중...";
@@ -1997,9 +2144,25 @@ function doPost(e) {
 
         if (json && json.ok && json.data) {
           const d = json.data;
-          if (Array.isArray(d.projects)) appState.projects = d.projects;
+          if (Array.isArray(d.projects)) {
+            appState.projects = d.projects.map(p => {
+              const extracted = extractProjectUrl(p);
+              return {
+                ...p,
+                url: normalizeProjectUrl(extracted) || extracted
+              };
+            });
+          }
           if (Array.isArray(d.sns)) appState.sns = d.sns;
-          if (Array.isArray(d.bgm)) appState.bgm = d.bgm;
+          if (Array.isArray(d.bgm)) {
+            appState.bgm = d.bgm.map((b, i) => ({
+              ...b,
+              id: b.id || ("bgm_sheet_" + i),
+              title: b.title || b.name || ("BGM Track " + (i + 1)),
+              artist: b.artist || "Stellive",
+              url: extractTrackUrl(b)
+            }));
+          }
           if (Array.isArray(d.users)) appState.users = d.users;
           if (Array.isArray(d.suggestions)) appState.suggestions = d.suggestions;
           if (d.settings && typeof d.settings === "object") {
@@ -2009,23 +2172,23 @@ function doPost(e) {
             const hasMain = d.admins.some(a => a.id === MAIN_ADMIN.id);
             appState.admins = hasMain ? d.admins : [MAIN_ADMIN, ...d.admins];
           }
-          isInitialSyncDone = true;
           saveLocalState();
           renderAll();
           if (statusEl) statusEl.textContent = "상태: 구글 시트 연결 완료 (전체 기기 자동 동기화 활성)";
           if (notify) showToast("구글 시트 데이터를 성공적으로 불러왔습니다.");
+          return true;
         } else {
           throw new Error("Invalid response");
         }
       } catch (err) {
         if (retryCount < 2) {
-          setTimeout(() => pullFromSheets(notify, retryCount + 1), 1000);
-          return;
+          await new Promise(r => setTimeout(r, 700));
+          return await pullFromSheets(notify, retryCount + 1);
         }
-        isInitialSyncDone = true;
         renderAll();
         if (statusEl) statusEl.textContent = "상태: 연결 확인 필요 (Code.gs '모든 사용자' 배포 확인)";
         if (notify) showToast("구글 시트 연결에 실패했습니다. URL과 배포 권한을 확인해 주세요.", true);
+        return false;
       }
     }
 

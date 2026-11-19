@@ -55,8 +55,8 @@
         <div id="headerSnsList" class="flex items-center gap-2 overflow-x-auto custom-scrollbar py-1"></div>
       </div>
 
-      <!-- 우측: 캡슐형 BGM 플레이어 + 회원 로그인 + 관리자 콘솔 -->
-      <div class="flex items-center gap-2.5 shrink-0">
+      <!-- 우측: 캡슐형 BGM 플레이어 + 건의사항 남기기 + 회원 로그인 + 관리자 콘솔 -->
+      <div class="flex items-center gap-2 shrink-0">
         <!-- 데스크톱 캡슐형 BGM 플레이어 -->
         <div class="hidden md:flex items-center gap-2 bg-[#F4F6FA] border border-slate-200/90 rounded-full px-3 py-1.5">
           <button type="button" onclick="prevBgmTrack()" title="이전 곡" class="p-1 text-slate-500 hover:text-[#1E2235] transition">
@@ -66,7 +66,7 @@
             <svg id="bgmPlayIcon" class="w-3.5 h-3.5 ml-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
           </button>
           <select id="bgmTrackSelect" onchange="selectBgmTrackByIndex(this.value)" aria-label="BGM 선택" class="bg-transparent text-xs font-semibold text-[#1E2235] max-w-[140px] truncate outline-none cursor-pointer">
-            <option value="">BGM 미설정</option>
+            <option value="">BGM 불러오는 중...</option>
           </select>
           <button type="button" onclick="nextBgmTrack()" title="다음 곡" class="p-1 text-slate-500 hover:text-[#1E2235] transition">
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
@@ -78,6 +78,11 @@
           </button>
           <input id="bgmVolumeSlider" type="range" min="0" max="1" step="0.05" value="0.5" oninput="changeBgmVolume(this.value)" aria-label="볼륨 조절" class="w-14" />
         </div>
+
+        <!-- 플레이리스트 오른쪽에 위치한 건의사항 남기기 버튼 -->
+        <button type="button" onclick="openSuggestionSubmitModal()" class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition">
+          건의사항 남기기
+        </button>
 
         <!-- 일반 회원 로그인 버튼 -->
         <button type="button" id="userAuthBtn" onclick="openUserAuthModal()" class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition">
@@ -185,7 +190,7 @@
         <svg id="bgmPlayIconMobile" class="w-3.5 h-3.5 ml-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
       </button>
       <select id="bgmTrackSelectMobile" onchange="selectBgmTrackByIndex(this.value)" aria-label="모바일 BGM 선택" class="bg-[#F4F6FA] rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#1E2235] flex-1 min-w-0 truncate outline-none">
-        <option value="">BGM 미설정</option>
+        <option value="">BGM 불러오는 중...</option>
       </select>
       <button type="button" onclick="nextBgmTrack()" title="다음 곡" class="p-1.5 text-slate-500 hover:text-[#1E2235]">
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
@@ -205,9 +210,6 @@
       <div class="flex items-center gap-2 shrink-0">
         <button type="button" id="heroEditDescBtn" onclick="openBannerEditModal()" class="hidden px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition">
           설명창 수정
-        </button>
-        <button type="button" onclick="openSuggestionSubmitModal()" class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition">
-          건의사항 남기기
         </button>
       </div>
     </section>
@@ -342,7 +344,7 @@
     </div>
   </div>
 
-  <!-- 5. SNS 링크 관리 모달 (플랫폼 선택 + 버튼 이름 + URL만 깔끔하게 제공) -->
+  <!-- 5. SNS 링크 관리 모달 -->
   <div id="snsModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 max-h-[88vh] flex flex-col">
       <div class="flex items-center justify-between mb-4">
@@ -350,7 +352,6 @@
         <button type="button" onclick="closeModal('snsModal')" class="text-slate-400 hover:text-slate-600 text-xs font-semibold">닫기</button>
       </div>
       <div class="overflow-y-auto custom-scrollbar pr-1 space-y-4">
-        <!-- 새 SNS 링크 등록 -->
         <form onsubmit="addSnsLink(event)" class="space-y-3 border-b border-slate-100 pb-4">
           <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1">SNS 플랫폼 선택</label>
@@ -386,7 +387,6 @@
           <button type="submit" class="w-full py-2.5 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-xs font-bold transition">SNS 링크 등록</button>
         </form>
 
-        <!-- 등록된 SNS 목록 -->
         <div>
           <div class="text-xs font-bold text-slate-600 mb-2">등록된 SNS 목록</div>
           <div id="adminSnsList" class="space-y-2"></div>
@@ -395,7 +395,7 @@
     </div>
   </div>
 
-  <!-- 6. BGM 배경음악 설정 모달 (최대 100MB MP3/MP4 + 번호 순서 선택) -->
+  <!-- 6. BGM 배경음악 설정 모달 -->
   <div id="bgmModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 max-h-[88vh] flex flex-col">
       <div class="flex items-center justify-between mb-4">
@@ -405,7 +405,7 @@
       <div class="overflow-y-auto custom-scrollbar pr-1 space-y-4">
         <form onsubmit="registerBgmTrack(event)" class="p-4 rounded-xl bg-[#F4F6FA] border border-slate-200/80 space-y-3">
           <div>
-            <label class="block text-xs font-bold text-[#1E2235] mb-1">MP3 / MP4 파일 선택 (최대 100MB)</label>
+            <label class="block text-xs font-bold text-[#1E2235] mb-1">MP3 / MP4 파일 선택 (최대 35MB 구글 드라이브 전체 동기화)</label>
             <input id="bgmFileInput" type="file" accept=".mp3,.mp4,.m4a,.wav,.ogg,audio/*,video/mp4" onchange="handleBgmFileChosen(event)" class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#5B6AD0] file:text-white hover:file:bg-[#4A58B8] cursor-pointer" />
             <div id="bgmSelectedFileInfo" class="text-[11px] text-slate-500 mt-1">선택된 파일 없음</div>
           </div>
@@ -524,7 +524,7 @@
       </div>
       <div class="overflow-y-auto custom-scrollbar space-y-4 pr-1">
         <div class="p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-100 text-xs text-slate-600 leading-relaxed">
-          Users, Suggestions, Projects, BGM_Playlist, SNS_Links, Site_Settings, Admins 7개 시트와 실시간으로 동기화됩니다.
+          Users, Suggestions, Projects, BGM_Playlist, SNS_Links, Site_Settings, Admins 7개 시트 및 구글 드라이브 BGM 폴더와 실시간 동기화됩니다.
         </div>
         <div>
           <label class="block text-xs font-bold text-[#1E2235] mb-1">Google Apps Script 웹 앱 URL</label>
@@ -548,9 +548,10 @@
 
   <script>
     // ================= 상수 및 초기 설정 =================
+    // 일반 사용자 접속 시에도 즉시 구글 시트 데이터를 불러오도록 기본 웹 앱 URL 고정
     const DEFAULT_SHEETS_URL = "https://script.google.com/macros/s/AKfycby0SeuS5Z29oTRiIstdlXWuhyuhKkPTvEhv-Js-nGVdZfmbBbpt28nNzoOSJFZ8HWsB/exec";
-    const STORAGE_KEY = "stellive_portal_state_v8";
-    const SHEETS_URL_KEY = "stellive_sheets_url_v8";
+    const STORAGE_KEY = "stellive_portal_state_v9";
+    const SHEETS_URL_KEY = "stellive_sheets_url_v9";
 
     const MAIN_ADMIN = {
       id: "dltjdgk0107",
@@ -580,7 +581,7 @@
     };
 
     const CODE_GS_TEMPLATE = `/**
- * Stellive Fan Web Portal - Google Sheets Backend (Code.gs)
+ * Stellive Fan Web Portal - Google Sheets & Google Drive Backend (Code.gs)
  * 배포: [배포] > [새 배포] > 유형: [웹 앱] > 실행 사용자: [나] > 액세스 권한: [모든 사용자]
  */
 var SHEET_SCHEMAS = {
@@ -592,6 +593,8 @@ var SHEET_SCHEMAS = {
   Site_Settings: ['key', 'value'],
   Admins: ['id', 'email', 'password', 'name', 'role', 'createdAt']
 };
+
+var BGM_FOLDER_NAME = 'Stellive_Portal_BGM';
 
 function getOrCreateSheet(ss, sheetName) {
   var sheet = ss.getSheetByName(sheetName);
@@ -643,8 +646,33 @@ function writeSheetData(ss, sheetName, rows) {
   sheet.getRange(2, 1, output.length, headers.length).setValues(output);
 }
 
+function getOrCreateBgmFolder() {
+  var folders = DriveApp.getFoldersByName(BGM_FOLDER_NAME);
+  return folders.hasNext() ? folders.next() : DriveApp.createFolder(BGM_FOLDER_NAME);
+}
+
+function uploadBgmToDrive(payload) {
+  var folder = getOrCreateBgmFolder();
+  var base64Data = payload.base64Data || '';
+  var mimeType = payload.mimeType || 'audio/mpeg';
+  var fileName = payload.fileName || ('bgm_' + Date.now() + '.mp3');
+  if (base64Data.indexOf(',') !== -1) base64Data = base64Data.split(',')[1];
+  var decodedBytes = Utilities.base64Decode(base64Data);
+  var blob = Utilities.newBlob(decodedBytes, mimeType, fileName);
+  var file = folder.createFile(blob);
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  var fileId = file.getId();
+  return { ok: true, fileId: fileId, url: 'gdrive://' + fileId };
+}
+
 function doGet(e) {
   try {
+    if (e && e.parameter && e.parameter.action === 'getBgmAudio' && e.parameter.fileId) {
+      var file = DriveApp.getFileById(e.parameter.fileId);
+      var blob = file.getBlob();
+      var b64 = Utilities.base64Encode(blob.getBytes());
+      return ContentService.createTextOutput(JSON.stringify({ ok: true, mimeType: blob.getContentType(), base64: b64 })).setMimeType(ContentService.MimeType.JSON);
+    }
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var data = {
       users: readSheetData(ss, 'Users'),
@@ -669,6 +697,13 @@ function doPost(e) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var payload = JSON.parse(e.postData.contents || '{}');
+    if (payload.action === 'uploadBgm') {
+      return ContentService.createTextOutput(JSON.stringify(uploadBgmToDrive(payload))).setMimeType(ContentService.MimeType.JSON);
+    }
+    if (payload.action === 'deleteBgmFile' && payload.fileId) {
+      try { DriveApp.getFileById(payload.fileId).setTrashed(true); } catch (err) {}
+      return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(ContentService.MimeType.JSON);
+    }
     var state = payload.data || payload;
     if (state.users) writeSheetData(ss, 'Users', state.users);
     if (state.suggestions) writeSheetData(ss, 'Suggestions', state.suggestions);
@@ -696,26 +731,7 @@ function doPost(e) {
         siteDesc: "스텔라이브(Stellive) 팬메이드 웹 게임과 다양한 팬 아트를 한곳에서 즐길 수 있는 공간입니다.\n아래 프로젝트를 클릭해 바로 플레이해 보세요!",
         logoDataUrl: ""
       },
-      projects: [
-        {
-          id: "proj_1",
-          title: "아르냥을 던져라!",
-          description: "제 첫 웹 게임입니다! 유니만 생각하면서 만들었습니다! ( AI로 만들었습니다 )",
-          url: "https://stelliveart.github.io",
-          thumbnail: "",
-          isPinned: false,
-          pinnedAt: ""
-        },
-        {
-          id: "proj_2",
-          title: "스텔라이브 아트 프로젝트",
-          description: "스텔라이브 팬아트 및 미니 게임 프로젝트입니다.",
-          url: "https://stelliveart.github.io",
-          thumbnail: "",
-          isPinned: false,
-          pinnedAt: ""
-        }
-      ],
+      projects: [],
       sns: [],
       bgm: [],
       users: [],
@@ -734,7 +750,15 @@ function doPost(e) {
     let bgmObjectUrlCache = {};
     let memoryBgmFiles = {};
 
-    // ================= 안전 다중 저장 엔진 (메모리 + IndexedDB ArrayBuffer) =================
+    function getActiveSheetsUrl() {
+      const saved = localStorage.getItem(SHEETS_URL_KEY);
+      if (saved && saved.startsWith("https://script.google.com/")) {
+        return saved;
+      }
+      return DEFAULT_SHEETS_URL;
+    }
+
+    // ================= 안전 다중 저장 엔진 (메모리 + IndexedDB + Google Drive) =================
     function openBgmDb() {
       return new Promise((resolve, reject) => {
         try {
@@ -783,6 +807,36 @@ function doPost(e) {
       }
     }
 
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = (err) => reject(err);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function uploadBgmToGoogleDrive(fileObj) {
+      const url = getActiveSheetsUrl();
+      if (!url) return null;
+      const base64Data = await fileToBase64(fileObj);
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "uploadBgm",
+          fileName: fileObj.name,
+          mimeType: fileObj.type || "audio/mpeg",
+          base64Data: base64Data
+        })
+      });
+      const json = await res.json();
+      if (json && json.ok && json.url) {
+        return json.url;
+      }
+      return null;
+    }
+
     async function getBgmPlayableUrl(track) {
       if (bgmObjectUrlCache[track.id]) {
         return bgmObjectUrlCache[track.id];
@@ -808,13 +862,41 @@ function doPost(e) {
         }
       } catch (e) {}
 
-      if (track.url && !track.url.startsWith("local_idb://")) {
+      // 일반 사용자 기기에서 구글 드라이브 스트리밍 파일 로드
+      if (track.url && track.url.startsWith("gdrive://")) {
+        const fileId = track.url.replace("gdrive://", "").trim();
+        const scriptUrl = getActiveSheetsUrl();
+        if (scriptUrl && fileId) {
+          try {
+            showToast("오디오 스트리밍 데이터를 불러오는 중입니다...");
+            const res = await fetch(`${scriptUrl}?action=getBgmAudio&fileId=${encodeURIComponent(fileId)}`);
+            const json = await res.json();
+            if (json && json.ok && json.base64) {
+              const byteChars = atob(json.base64);
+              const byteNumbers = new Array(byteChars.length);
+              for (let i = 0; i < byteChars.length; i++) {
+                byteNumbers[i] = byteChars.charCodeAt(i);
+              }
+              const byteArray = new Uint8Array(byteNumbers);
+              const blob = new Blob([byteArray], { type: json.mimeType || "audio/mpeg" });
+              const objUrl = URL.createObjectURL(blob);
+              bgmObjectUrlCache[track.id] = objUrl;
+              return objUrl;
+            }
+          } catch (err) {
+            console.error("Google Drive BGM stream error:", err);
+          }
+        }
+      }
+
+      if (track.url && !track.url.startsWith("local_idb://") && !track.url.startsWith("gdrive://")) {
         return track.url;
       }
       return null;
     }
 
-    async function deleteBgmBlobFromDb(id) {
+    async function deleteBgmBlobFromDb(track) {
+      const id = track.id;
       delete memoryBgmFiles[id];
       if (bgmObjectUrlCache[id]) {
         try { URL.revokeObjectURL(bgmObjectUrlCache[id]); } catch (e) {}
@@ -825,21 +907,32 @@ function doPost(e) {
         const tx = db.transaction("tracks", "readwrite");
         tx.objectStore("tracks").delete(id);
       } catch (e) {}
+
+      if (track.url && track.url.startsWith("gdrive://")) {
+        const fileId = track.url.replace("gdrive://", "").trim();
+        const scriptUrl = getActiveSheetsUrl();
+        if (scriptUrl && fileId) {
+          fetch(scriptUrl, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "deleteBgmFile", fileId: fileId })
+          }).catch(() => {});
+        }
+      }
     }
 
-    // ================= 초기화 =================
+    // ================= 초기화 (접속 즉시 구글 시트 자동 동기화) =================
     window.addEventListener("DOMContentLoaded", async () => {
       loadLocalState();
-      const savedUrl = localStorage.getItem(SHEETS_URL_KEY) || DEFAULT_SHEETS_URL;
-      document.getElementById("sheetsUrlInput").value = savedUrl;
+      const activeUrl = getActiveSheetsUrl();
+      document.getElementById("sheetsUrlInput").value = activeUrl;
       document.getElementById("codeGsPreview").textContent = CODE_GS_TEMPLATE;
 
       renderAll();
       setupAudioEvents();
 
-      if (savedUrl) {
-        await pullFromSheets(false);
-      }
+      // 웹사이트 접속 즉시 구글 시트 데이터 자동 불러오기
+      await pullFromSheets(false);
     });
 
     document.addEventListener("click", (e) => {
@@ -1130,7 +1223,7 @@ function doPost(e) {
       showToast("로그아웃되었습니다.");
     }
 
-    // ================= 프로젝트 등록/수정 (파일 업로드 썸네일) =================
+    // ================= 프로젝트 등록/수정 =================
     function openProjectModal() {
       document.getElementById("projectModalTitle").textContent = "프로젝트 등록";
       document.getElementById("editProjectId").value = "";
@@ -1162,7 +1255,7 @@ function doPost(e) {
     function previewProjectThumbFile(e) {
       const file = e.target.files[0];
       if (!file) return;
-      resizeImageFile(file, 720, 0.82, (dataUrl) => {
+      resizeImageFile(file, 460, 0.78, (dataUrl) => {
         tempProjectThumb = dataUrl;
         document.getElementById("projThumbPreviewBox").innerHTML = `<img src="${dataUrl}" class="w-full h-full object-cover" />`;
       });
@@ -1241,7 +1334,7 @@ function doPost(e) {
       await pushAllToSheets(false);
     }
 
-    // ================= SNS 링크 관리 (플랫폼 선택 + 버튼 표시 이름 + URL) =================
+    // ================= SNS 링크 관리 =================
     function openSnsModal() {
       renderSnsModalContent();
       openModal("snsModal");
@@ -1312,7 +1405,7 @@ function doPost(e) {
       await pushAllToSheets(false);
     }
 
-    // ================= BGM 배경음악 관리 (최대 100MB MP3/MP4 + 번호 순서 선택) =================
+    // ================= BGM 배경음악 관리 (Google Drive 자동 업로드 + 번호 순서) =================
     function openBgmModal() {
       pendingBgmFile = null;
       document.getElementById("bgmFileInput").value = "";
@@ -1357,7 +1450,7 @@ function doPost(e) {
 
       const btn = document.getElementById("bgmRegisterSubmitBtn");
       btn.disabled = true;
-      btn.textContent = "등록 중...";
+      btn.textContent = "구글 드라이브 및 시트 업로드 중...";
 
       try {
         const trackId = "bgm_" + Date.now();
@@ -1366,11 +1459,21 @@ function doPost(e) {
 
         await saveBgmFileResilient(trackId, chosenFile);
 
+        let remoteUrl = "local_idb://" + trackId;
+        if (chosenFile.size <= 35 * 1024 * 1024) {
+          try {
+            const driveUrl = await uploadBgmToGoogleDrive(chosenFile);
+            if (driveUrl) remoteUrl = driveUrl;
+          } catch (uploadErr) {
+            console.warn("Drive upload fallback to local IDB:", uploadErr);
+          }
+        }
+
         appState.bgm.push({
           id: trackId,
           title: title,
           artist: artist,
-          url: "local_idb://" + trackId,
+          url: remoteUrl,
           coverUrl: ""
         });
 
@@ -1383,7 +1486,7 @@ function doPost(e) {
         renderAdminBgmList();
         renderBgmPlayerSelect();
         showToast(`${appState.bgm.length}번 곡으로 등록되었습니다.`);
-        pushAllToSheets(false);
+        await pushAllToSheets(false);
       } catch (err) {
         console.error(err);
         showToast("파일 처리 중 문제가 발생했습니다. 다시 시도해 주세요.", true);
@@ -1443,8 +1546,9 @@ function doPost(e) {
     }
 
     async function deleteBgmTrack(id) {
+      const target = appState.bgm.find(b => b.id === id);
       appState.bgm = appState.bgm.filter(b => b.id !== id);
-      await deleteBgmBlobFromDb(id);
+      if (target) await deleteBgmBlobFromDb(target);
       if (currentBgmIndex >= appState.bgm.length) currentBgmIndex = 0;
       saveLocalState();
       renderAdminBgmList();
@@ -1520,7 +1624,7 @@ function doPost(e) {
 
       const srcUrl = await getBgmPlayableUrl(track);
       if (!srcUrl) {
-        showToast("오디오 파일을 찾을 수 없습니다. 다시 등록해 주세요.", true);
+        showToast("오디오 파일을 불러올 수 없습니다.", true);
         return;
       }
 
@@ -1535,7 +1639,7 @@ function doPost(e) {
     async function toggleBgmPlay() {
       const audio = document.getElementById("bgmMediaPlayer");
       if (!appState.bgm || appState.bgm.length === 0) {
-        showToast("관리자 콘솔에서 BGM을 먼저 등록해 주세요.", true);
+        showToast("등록된 BGM이 없습니다.", true);
         return;
       }
       if (audio.paused) {
@@ -1593,7 +1697,7 @@ function doPost(e) {
     function previewLogoFile(e) {
       const file = e.target.files[0];
       if (!file) return;
-      resizeImageFile(file, 320, 0.85, (dataUrl) => {
+      resizeImageFile(file, 220, 0.82, (dataUrl) => {
         tempLogoDataUrl = dataUrl;
         document.getElementById("logoPreviewArea").innerHTML = `<img src="${dataUrl}" class="max-h-14 object-contain" />`;
       });
@@ -1714,7 +1818,7 @@ function doPost(e) {
       await pushAllToSheets(false);
     }
 
-    // ================= 구글 시트 양방향 동기화 =================
+    // ================= 구글 시트 양방향 자동 동기화 =================
     function openSheetsModal() {
       openModal("sheetsModal");
     }
@@ -1741,7 +1845,7 @@ function doPost(e) {
     }
 
     async function pullFromSheets(notify = false) {
-      const url = localStorage.getItem(SHEETS_URL_KEY) || DEFAULT_SHEETS_URL;
+      const url = getActiveSheetsUrl();
       const statusEl = document.getElementById("sheetsStatusText");
       if (!url) return;
 
@@ -1751,7 +1855,7 @@ function doPost(e) {
         const json = await res.json();
         if (json && json.ok && json.data) {
           const d = json.data;
-          if (Array.isArray(d.projects) && d.projects.length > 0) appState.projects = d.projects;
+          if (Array.isArray(d.projects)) appState.projects = d.projects;
           if (Array.isArray(d.sns)) appState.sns = d.sns;
           if (Array.isArray(d.bgm)) appState.bgm = d.bgm;
           if (Array.isArray(d.users)) appState.users = d.users;
@@ -1765,7 +1869,7 @@ function doPost(e) {
           }
           saveLocalState();
           renderAll();
-          statusEl.textContent = "상태: 구글 시트 연결 완료 (실시간 동기화 활성)";
+          statusEl.textContent = "상태: 구글 시트 연결 완료 (자동 동기화 활성)";
           if (notify) showToast("구글 시트 데이터를 성공적으로 불러왔습니다.");
         } else {
           throw new Error("Invalid response");
@@ -1777,7 +1881,7 @@ function doPost(e) {
     }
 
     async function pushAllToSheets(notify = false) {
-      const url = localStorage.getItem(SHEETS_URL_KEY) || DEFAULT_SHEETS_URL;
+      const url = getActiveSheetsUrl();
       const statusEl = document.getElementById("sheetsStatusText");
       if (!url) return;
 

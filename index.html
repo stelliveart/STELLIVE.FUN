@@ -553,8 +553,8 @@
   <script>
     // ================= 상수 및 초기 설정 =================
     const DEFAULT_SHEETS_URL = "https://script.google.com/macros/s/AKfycby0SeuS5Z29oTRiIstdlXWuhyuhKkPTvEhv-Js-nGVdZfmbBbpt28nNzoOSJFZ8HWsB/exec";
-    const STORAGE_KEY = "stellive_portal_state_v10";
-    const SHEETS_URL_KEY = "stellive_sheets_url_v10";
+    const STORAGE_KEY = "stellive_portal_state_v11";
+    const SHEETS_URL_KEY = "stellive_sheets_url_v11";
 
     const MAIN_ADMIN = {
       id: "dltjdgk0107",
@@ -934,10 +934,11 @@ function doPost(e) {
       }
     }
 
-    // ================= 어떤 기기/인앱 브라우저에서도 동작하는 이중 통신 엔진 =================
+    // ================= 3중 자동 우회 통신 엔진 (Fetch -> 순수 영숫자 JSONP -> CORS 프록시 폴백) =================
     function loadViaJsonp(baseUrl, timeoutMs = 9000) {
       return new Promise((resolve, reject) => {
-        const cbName = "__stellive_jsonp_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+        // 순수 영숫자 콜백명 사용 (특수문자 필터링으로 인한 콜백 유실 원천 차단)
+        const cbName = "stelliveJsonpCb" + Date.now() + Math.floor(Math.random() * 100000);
         const script = document.createElement("script");
         let finished = false;
 
@@ -970,19 +971,47 @@ function doPost(e) {
         };
 
         const sep = baseUrl.includes("?") ? "&" : "?";
-        script.src = `${baseUrl}${sep}callback=${cbName}&_t=${Date.now()}`;
-        document.head.appendChild(script);
+        script.src = `${baseUrl}${sep}callback=${cbName}&t=${Date.now()}`;
+        (document.head || document.body || document.documentElement).appendChild(script);
       });
+    }
+
+    async function loadViaCorsProxy(targetUrl) {
+      const proxies = [
+        (u) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+        (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`
+      ];
+
+      for (const buildProxyUrl of proxies) {
+        try {
+          const controller = new AbortController();
+          const tid = setTimeout(() => controller.abort(), 9000);
+          const res = await fetch(buildProxyUrl(targetUrl), {
+            method: "GET",
+            cache: "no-store",
+            signal: controller.signal
+          });
+          clearTimeout(tid);
+          if (res.ok) {
+            const text = await res.text();
+            const json = JSON.parse(text);
+            if (json && typeof json === "object") return json;
+          }
+        } catch (err) {
+          console.warn("CORS proxy fallback attempt failed:", err);
+        }
+      }
+      throw new Error("All CORS proxies failed");
     }
 
     async function fetchAppsScriptSmart(targetUrl) {
       const sep = targetUrl.includes("?") ? "&" : "?";
-      const cacheBustedUrl = `${targetUrl}${sep}_t=${Date.now()}`;
+      const cacheBustedUrl = `${targetUrl}${sep}t=${Date.now()}`;
 
       // 1차 시도: 표준 fetch (redirect: follow)
       try {
         const controller = new AbortController();
-        const tid = setTimeout(() => controller.abort(), 8000);
+        const tid = setTimeout(() => controller.abort(), 7500);
         const res = await fetch(cacheBustedUrl, {
           method: "GET",
           redirect: "follow",
@@ -991,19 +1020,29 @@ function doPost(e) {
         });
         clearTimeout(tid);
         if (res.ok) {
-          const json = await res.json();
+          const text = await res.text();
+          const json = JSON.parse(text);
           if (json && typeof json === "object") return json;
         }
       } catch (fetchErr) {
-        console.warn("Fetch blocked or redirected, switching to JSONP fallback:", fetchErr);
+        console.warn("1st fetch attempt failed, trying JSONP:", fetchErr);
       }
 
-      // 2차 시도: 인앱 브라우저 및 외부 IP CORS 차단을 우회하는 JSONP 스크립트 로더
-      return await loadViaJsonp(targetUrl, 10000);
+      // 2차 시도: 순수 영숫자 콜백 JSONP 스크립트 로더
+      try {
+        const jsonpRes = await loadViaJsonp(targetUrl, 8500);
+        if (jsonpRes && typeof jsonpRes === "object") return jsonpRes;
+      } catch (jsonpErr) {
+        console.warn("2nd JSONP attempt failed, trying CORS proxy:", jsonpErr);
+      }
+
+      // 3차 시도: 사파리 ITP / 인앱 브라우저 스크립트 차단 우회용 CORS 프록시
+      return await loadViaCorsProxy(cacheBustedUrl);
     }
 
     // ================= 초기화 (다른 기기/IP 접속 즉시 구글 시트 자동 동기화) =================
     window.addEventListener("DOMContentLoaded", async () => {
+      setupAudioEvents();
       const hasLocalCache = loadLocalState();
       const activeUrl = getActiveSheetsUrl();
       document.getElementById("sheetsUrlInput").value = activeUrl;

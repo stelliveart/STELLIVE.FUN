@@ -1,0 +1,1838 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stellive Fan Web Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      background-color: #F4F6FA;
+      color: #1E2235;
+      margin: 0;
+      padding: 0;
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #F4F6FA; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 9999px; }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: #CBD5E1;
+      height: 4px;
+      border-radius: 999px;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      border: 2.5px solid #5B6AD0;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between pb-16 md:pb-0">
+
+  <!-- 상단 헤더 -->
+  <header class="w-full bg-white border-b border-slate-200/80 sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+      <!-- 좌측: STELLIVE 로고 + 등록된 SNS 링크 버튼 -->
+      <div class="flex items-center gap-3.5 min-w-0">
+        <a href="#" onclick="location.reload(); return false;" class="flex items-center gap-2.5 shrink-0">
+          <div id="headerLogoContainer" class="flex items-center gap-2">
+            <svg class="w-6 h-6 text-[#5B6AD0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            <span class="font-extrabold text-lg tracking-tight text-[#1E2235]">STELLIVE</span>
+          </div>
+        </a>
+        <div id="headerSnsList" class="flex items-center gap-2 overflow-x-auto custom-scrollbar py-1"></div>
+      </div>
+
+      <!-- 우측: 캡슐형 BGM 플레이어 + 회원 로그인 + 관리자 콘솔 -->
+      <div class="flex items-center gap-2.5 shrink-0">
+        <!-- 데스크톱 캡슐형 BGM 플레이어 -->
+        <div class="hidden md:flex items-center gap-2 bg-[#F4F6FA] border border-slate-200/90 rounded-full px-3 py-1.5">
+          <button type="button" onclick="prevBgmTrack()" title="이전 곡" class="p-1 text-slate-500 hover:text-[#1E2235] transition">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+          </button>
+          <button type="button" id="bgmPlayBtn" onclick="toggleBgmPlay()" title="재생/일시정지" class="w-7 h-7 rounded-full bg-[#5B6AD0] hover:bg-[#4A58B8] text-white flex items-center justify-center transition shadow-sm">
+            <svg id="bgmPlayIcon" class="w-3.5 h-3.5 ml-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+          <select id="bgmTrackSelect" onchange="selectBgmTrackByIndex(this.value)" aria-label="BGM 선택" class="bg-transparent text-xs font-semibold text-[#1E2235] max-w-[140px] truncate outline-none cursor-pointer">
+            <option value="">BGM 미설정</option>
+          </select>
+          <button type="button" onclick="nextBgmTrack()" title="다음 곡" class="p-1 text-slate-500 hover:text-[#1E2235] transition">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+          </button>
+          <button type="button" onclick="toggleBgmMute()" title="음소거" class="p-1 text-slate-500 hover:text-[#1E2235] transition">
+            <svg id="bgmVolIcon" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+            </svg>
+          </button>
+          <input id="bgmVolumeSlider" type="range" min="0" max="1" step="0.05" value="0.5" oninput="changeBgmVolume(this.value)" aria-label="볼륨 조절" class="w-14" />
+        </div>
+
+        <!-- 일반 회원 로그인 버튼 -->
+        <button type="button" id="userAuthBtn" onclick="openUserAuthModal()" class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition">
+          회원 로그인
+        </button>
+
+        <!-- 관리자 로그인 / 콘솔 드롭다운 -->
+        <div class="relative" id="adminDropdownWrapper">
+          <button type="button" id="adminLoginBtn" onclick="openAdminLoginModal()" class="px-4 py-2 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-xs font-semibold transition shadow-sm">
+            관리자 로그인
+          </button>
+          <button type="button" id="adminConsoleBtn" onclick="toggleAdminMenu()" class="hidden px-4 py-2 rounded-xl bg-[#1E2235] hover:bg-[#2A2F4A] text-white text-xs font-semibold transition flex items-center gap-2 shadow-sm">
+            <span>관리자 콘솔</span>
+            <svg class="w-3.5 h-3.5 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+
+          <!-- 관리자 드롭다운 패널 -->
+          <div id="adminDropdownMenu" class="hidden absolute right-0 mt-2.5 w-72 bg-white rounded-2xl shadow-xl border border-slate-200/90 py-2 z-50">
+            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+              <span id="adminDisplayId" class="font-bold text-sm text-[#1E2235]">dltjdgk0107</span>
+              <span id="adminDisplayRole" class="px-2 py-0.5 rounded-md bg-indigo-50 text-[#5B6AD0] text-[11px] font-bold">메인 관리자</span>
+            </div>
+            <div class="py-1.5">
+              <button type="button" onclick="openProjectModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
+                <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                <div>
+                  <div class="text-xs font-bold text-[#1E2235]">프로젝트 등록</div>
+                  <div class="text-[11px] text-slate-400">새 웹 게임 및 프로젝트 추가</div>
+                </div>
+              </button>
+              <button type="button" onclick="openBannerEditModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
+                <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                <div>
+                  <div class="text-xs font-bold text-[#1E2235]">웹사이트 설명창 수정</div>
+                  <div class="text-[11px] text-slate-400">메인 배너 제목 및 안내 문구 설정</div>
+                </div>
+              </button>
+              <button type="button" onclick="openSnsModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
+                <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                <div>
+                  <div class="text-xs font-bold text-[#1E2235]">SNS 링크 관리</div>
+                  <div class="text-[11px] text-slate-400">로고 옆 SNS 플랫폼 및 계정 버튼 설정</div>
+                </div>
+              </button>
+              <button type="button" onclick="openBgmModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
+                <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                <div>
+                  <div class="text-xs font-bold text-[#1E2235]">BGM 배경음악 설정</div>
+                  <div class="text-[11px] text-slate-400">MP3/MP4 파일 등록 및 재생 번호 순서 지정</div>
+                </div>
+              </button>
+              <button type="button" onclick="openLogoModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
+                <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <div>
+                  <div class="text-xs font-bold text-[#1E2235]">로고 이미지 변경</div>
+                  <div class="text-[11px] text-slate-400">상단 메인 로고 이미지 파일 업로드</div>
+                </div>
+              </button>
+              <button type="button" onclick="openSuggestionsAdminModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
+                <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <div>
+                  <div class="text-xs font-bold text-[#1E2235]">건의사항 및 회원 관리</div>
+                  <div class="text-[11px] text-slate-400">방문자 의견 답변 및 계정 조회</div>
+                </div>
+              </button>
+              <button type="button" onclick="openAdminsModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
+                <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <div>
+                  <div class="text-xs font-bold text-[#1E2235]">관리자 계정 관리</div>
+                  <div class="text-[11px] text-slate-400">서브 관리자 생성 및 삭제</div>
+                </div>
+              </button>
+              <button type="button" onclick="openSheetsModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
+                <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                <div>
+                  <div class="text-xs font-bold text-[#1E2235]">구글 시트 DB 연동</div>
+                  <div class="text-[11px] text-slate-400">Apps Script URL 및 실시간 동기화</div>
+                </div>
+              </button>
+            </div>
+            <div class="border-t border-slate-100 pt-1.5">
+              <button type="button" onclick="logoutAdmin()" class="w-full px-4 py-2.5 hover:bg-rose-50 flex items-start gap-3 text-left transition">
+                <svg class="w-4 h-4 text-rose-500 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <div>
+                  <div class="text-xs font-bold text-rose-600">로그아웃</div>
+                  <div class="text-[11px] text-rose-400">관리자 세션 종료</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 모바일 / 태블릿 하단 고정 BGM 바 -->
+  <div class="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 px-4 py-2.5 flex items-center justify-between gap-2 z-30">
+    <div class="flex items-center gap-2 min-w-0 flex-1">
+      <button type="button" onclick="prevBgmTrack()" title="이전 곡" class="p-1.5 text-slate-500 hover:text-[#1E2235]">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+      </button>
+      <button type="button" onclick="toggleBgmPlay()" title="재생/일시정지" class="w-8 h-8 rounded-full bg-[#5B6AD0] text-white flex items-center justify-center shrink-0">
+        <svg id="bgmPlayIconMobile" class="w-3.5 h-3.5 ml-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <select id="bgmTrackSelectMobile" onchange="selectBgmTrackByIndex(this.value)" aria-label="모바일 BGM 선택" class="bg-[#F4F6FA] rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#1E2235] flex-1 min-w-0 truncate outline-none">
+        <option value="">BGM 미설정</option>
+      </select>
+      <button type="button" onclick="nextBgmTrack()" title="다음 곡" class="p-1.5 text-slate-500 hover:text-[#1E2235]">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- 메인 콘텐츠 -->
+  <main class="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <!-- 메인 소개 배너 카드 -->
+    <section class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 sm:p-8 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <h1 id="siteTitleDisplay" class="text-xl sm:text-2xl font-extrabold text-[#1E2235] mb-2">Stellive Fan Web Portal</h1>
+        <p id="siteDescDisplay" class="text-sm text-slate-500 leading-relaxed whitespace-pre-line">스텔라이브(Stellive) 팬메이드 웹 게임과 다양한 팬 아트를 한곳에서 즐길 수 있는 공간입니다.
+아래 프로젝트를 클릭해 바로 플레이해 보세요!</p>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <button type="button" id="heroEditDescBtn" onclick="openBannerEditModal()" class="hidden px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition">
+          설명창 수정
+        </button>
+        <button type="button" onclick="openSuggestionSubmitModal()" class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition">
+          건의사항 남기기
+        </button>
+      </div>
+    </section>
+
+    <!-- 프로젝트 카드 그리드 -->
+    <section id="projectsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></section>
+  </main>
+
+  <!-- 하단 푸터 -->
+  <footer class="w-full py-8 text-center text-xs text-slate-400">
+    © 2026 Stellive Digital Playground. All rights reserved.
+  </footer>
+
+  <!-- MP3 및 MP4 오디오 재생용 미디어 요소 -->
+  <video id="bgmMediaPlayer" preload="auto" playsinline class="hidden"></video>
+
+  <!-- 우측 하단 토스트 알림 -->
+  <div id="toastContainer" class="fixed bottom-16 md:bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ================= 모달 모음 ================= -->
+
+  <!-- 1. 관리자 로그인 모달 -->
+  <div id="adminLoginModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="text-base font-extrabold text-[#1E2235]">관리자 로그인</h3>
+        <button type="button" onclick="closeModal('adminLoginModal')" class="text-slate-400 hover:text-slate-600 text-xs font-semibold">닫기</button>
+      </div>
+      <form onsubmit="handleAdminLogin(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">관리자 아이디</label>
+          <input id="adminLoginId" type="text" required placeholder="아이디 입력" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">비밀번호</label>
+          <input id="adminLoginPw" type="password" required placeholder="비밀번호 입력" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]" />
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-sm font-bold transition">로그인</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. 일반 회원 로그인 / 회원가입 모달 (아이디 기반) -->
+  <div id="userAuthModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="userAuthTitle" class="text-base font-extrabold text-[#1E2235]">회원 로그인</h3>
+        <button type="button" onclick="closeModal('userAuthModal')" class="text-slate-400 hover:text-slate-600 text-xs font-semibold">닫기</button>
+      </div>
+      <div id="userLoggedInBox" class="hidden space-y-4">
+        <div class="p-4 rounded-xl bg-[#F4F6FA] border border-slate-200/80">
+          <div class="text-xs text-slate-500">현재 로그인된 아이디</div>
+          <div id="loggedInUserLabel" class="text-sm font-bold text-[#1E2235] mt-0.5"></div>
+        </div>
+        <button type="button" onclick="logoutMember()" class="w-full py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold transition">로그아웃</button>
+      </div>
+      <form id="userAuthForm" onsubmit="handleUserAuth(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">아이디</label>
+          <input id="memberUserIdInput" type="text" required placeholder="예: dode0107" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]" />
+        </div>
+        <div id="memberNicknameField" class="hidden">
+          <label class="block text-xs font-semibold text-slate-600 mb-1">닉네임</label>
+          <input id="memberNicknameInput" type="text" placeholder="표시될 닉네임" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">비밀번호</label>
+          <input id="memberPwInput" type="password" required placeholder="비밀번호 입력" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]" />
+        </div>
+        <button id="userAuthSubmitBtn" type="submit" class="w-full py-2.5 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-sm font-bold transition">로그인</button>
+        <div class="text-center pt-1">
+          <button type="button" onclick="toggleUserAuthMode()" id="userAuthSwitchBtn" class="text-xs text-[#5B6AD0] font-semibold hover:underline">계정이 없으신가요? 아이디로 회원가입</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. 프로젝트 등록 / 수정 모달 (썸네일 이미지 파일 업로드 전용) -->
+  <div id="projectModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="projectModalTitle" class="text-base font-extrabold text-[#1E2235]">프로젝트 등록</h3>
+        <button type="button" onclick="closeModal('projectModal')" class="text-slate-400 hover:text-slate-600 text-xs font-semibold">닫기</button>
+      </div>
+      <form onsubmit="saveProject(event)" class="space-y-3.5">
+        <input type="hidden" id="editProjectId" />
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">프로젝트 제목</label>
+          <input id="projTitle" type="text" required placeholder="예: 아르냥을 던져라!" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">프로젝트 설명</label>
+          <textarea id="projDesc" rows="2" required placeholder="간단한 소개 문구를 입력하세요" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">바로가기 URL</label>
+          <input id="projUrl" type="url" required placeholder="https://..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">썸네일 이미지 파일</label>
+          <input id="projThumbFile" type="file" accept="image/*" onchange="previewProjectThumbFile(event)" class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-[#5B6AD0] hover:file:bg-indigo-100 cursor-pointer" />
+          <div id="projThumbPreviewBox" class="mt-2.5 h-32 rounded-xl bg-[#EAEFF8] border border-slate-200 flex items-center justify-center overflow-hidden">
+            <span class="text-xs font-bold text-[#5B6AD0]">Stellive Project</span>
+          </div>
+          <div class="flex justify-end mt-1">
+            <button type="button" onclick="clearProjectThumb()" class="text-[11px] text-slate-400 hover:text-rose-500">기본 썸네일로 초기화</button>
+          </div>
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-sm font-bold transition">저장하기</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. 웹사이트 설명창 수정 모달 -->
+  <div id="bannerEditModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-extrabold text-[#1E2235]">웹사이트 설명창 수정</h3>
+        <button type="button" onclick="closeModal('bannerEditModal')" class="text-slate-400 hover:text-slate-600 text-xs font-semibold">닫기</button>
+      </div>
+      <form onsubmit="saveBannerSettings(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">포털 제목</label>
+          <input id="editSiteTitleInput" type="text" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">안내 설명 문구</label>
+          <textarea id="editSiteDescInput" rows="4" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]"></textarea>
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-sm font-bold transition">설명창 저장</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 5. SNS 링크 관리 모달 (플랫폼 선택 + 버튼 이름 + URL만 깔끔하게 제공) -->
+  <div id="snsModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 max-h-[88vh] flex flex-col">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-extrabold text-[#1E2235]">SNS 링크 관리</h3>
+        <button type="button" onclick="closeModal('snsModal')" class="text-slate-400 hover:text-slate-600 text-xs font-semibold">닫기</button>
+      </div>
+      <div class="overflow-y-auto custom-scrollbar pr-1 space-y-4">
+        <!-- 새 SNS 링크 등록 -->
+        <form onsubmit="addSnsLink(event)" class="space-y-3 border-b border-slate-100 pb-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">SNS 플랫폼 선택</label>
+            <select id="snsPlatformSelect" onchange="handlePlatformSelectChange(this)" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-[#1E2235] outline-none focus:border-[#5B6AD0]">
+              <option value="youtube">YouTube (유튜브)</option>
+              <option value="chzzk">CHZZK (치지직)</option>
+              <option value="soop">SOOP (아프리카TV)</option>
+              <option value="twitch">Twitch (트위치)</option>
+              <option value="x">X (Twitter)</option>
+              <option value="instagram">Instagram (인스타그램)</option>
+              <option value="tiktok">TikTok (틱톡)</option>
+              <option value="discord">Discord (디스코드)</option>
+              <option value="navercafe">Naver Cafe (네이버 카페)</option>
+              <option value="naver">Naver (네이버)</option>
+              <option value="soundcloud">SoundCloud (사운드클라우드)</option>
+              <option value="spotify">Spotify (스포티파이)</option>
+              <option value="facebook">Facebook (페이스북)</option>
+              <option value="threads">Threads (스레드)</option>
+              <option value="github">GitHub (깃허브)</option>
+              <option value="website">공식 홈페이지 / 기타 웹사이트</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">버튼 표시 이름</label>
+              <input id="snsNameInput" type="text" required placeholder="예: 공식 유튜브" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs outline-none focus:border-[#5B6AD0]" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">이동 URL</label>
+              <input id="snsUrlInput" type="url" required placeholder="https://..." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs outline-none focus:border-[#5B6AD0]" />
+            </div>
+          </div>
+          <button type="submit" class="w-full py-2.5 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-xs font-bold transition">SNS 링크 등록</button>
+        </form>
+
+        <!-- 등록된 SNS 목록 -->
+        <div>
+          <div class="text-xs font-bold text-slate-600 mb-2">등록된 SNS 목록</div>
+          <div id="adminSnsList" class="space-y-2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. BGM 배경음악 설정 모달 (최대 100MB MP3/MP4 + 번호 순서 선택) -->
+  <div id="bgmModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 max-h-[88vh] flex flex-col">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-extrabold text-[#1E2235]">BGM 배경음악 설정</h3>
+        <button type="button" onclick="closeModal('bgmModal')" class="text-slate-400 hover:text-slate-600 text-xs font-semibold">닫기</button>
+      </div>
+      <div class="overflow-y-auto custom-scrollbar pr-1 space-y-4">
+        <form onsubmit="registerBgmTrack(event)" class="p-4 rounded-xl bg-[#F4F6FA] border border-slate-200/80 space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-[#1E2235] mb-1">MP3 / MP4 파일 선택 (최대 100MB)</label>
+            <input id="bgmFileInput" type="file" accept=".mp3,.mp4,.m4a,.wav,.ogg,audio/*,video/mp4" onchange="handleBgmFileChosen(event)" class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#5B6AD0] file:text-white hover:file:bg-[#4A58B8] cursor-pointer" />
+            <div id="bgmSelectedFileInfo" class="text-[11px] text-slate-500 mt-1">선택된 파일 없음</div>
+          </div>
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">노래 제목</label>
+              <input id="bgmTitleInput" type="text" required placeholder="파일 선택 시 자동 입력" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#5B6AD0]" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">아티스트</label>
+              <input id="bgmArtistInput" type="text" placeholder="Stellive" value="Stellive" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs outline-none focus:border-[#5B6AD0]" />
+            </div>
+          </div>
+          <button id="bgmRegisterSubmitBtn" type="submit" class="w-full py-2.5 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-xs font-bold transition">노래 등록하기</button>
+        </form>
+
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-[#1E2235]">등록된 BGM 목록 (1번부터 번호 순서대로 재생)</span>
+            <span id="bgmTotalCount" class="text-[11px] text-slate-400">0곡</span>
+          </div>
+          <div id="adminBgmList" class="space-y-2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. 로고 이미지 업로드 모달 -->
+  <div id="logoModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-extrabold text-[#1E2235]">로고 이미지 변경</h3>
+        <button type="button" onclick="closeModal('logoModal')" class="text-slate-400 hover:text-slate-600 text-xs font-semibold">닫기</button>
+      </div>
+      <div class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">로고 이미지 파일 업로드</label>
+          <input id="logoFileInput" type="file" accept="image/*" onchange="previewLogoFile(event)" class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-[#5B6AD0] hover:file:bg-indigo-100 cursor-pointer" />
+        </div>
+        <div id="logoPreviewArea" class="h-20 rounded-xl bg-[#F4F6FA] border border-slate-200 flex items-center justify-center p-3">
+          <span class="text-xs font-bold text-slate-500">미리보기 영역</span>
+        </div>
+        <div class="flex gap-2">
+          <button type="button" onclick="resetLogoToDefault()" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50">기본 로고 복원</button>
+          <button type="button" onclick="saveLogoFile()" class="flex-1 py-2.5 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-xs font-bold">적용하기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. 건의사항 남기기 모달 -->
+  <div id="suggestionSubmitModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-extrabold text-[#1E2235]">건의사항 남기기</h3>
+        <button type="button" onclick="closeModal('suggestionSubmitModal')" class="text-slate-400 hover:text-slate-600 text-xs font-semibold">닫기</button>
+      </div>
+      <form onsubmit="submitSuggestion(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">제목</label>
+          <input id="sugTitleInput" type="text" required placeholder="건의사항 제목을 입력하세요" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">내용</label>
+          <textarea id="sugContentInput" rows="4" required placeholder="추가되었으면 하는 프로젝트나 의견을 자유롭게 남겨주세요" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]"></textarea>
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-sm font-bold transition">등록하기</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 9. 건의사항 및 회원 목록 모달 -->
+  <div id="suggestionsAdminModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-extrabold text-[#1E2235]">건의사항 및 회원 목록</h3>
+        <button type="button" onclick="closeModal('suggestionsAdminModal')" class="text-slate-400 hover:text-slate-600 text-xs font-semibold">닫기</button>
+      </div>
+      <div class="overflow-y-auto custom-scrollbar space-y-5 pr-1">
+        <div>
+          <div class="text-xs font-bold text-[#1E2235] mb-2">접수된 건의사항</div>
+          <div id="adminSuggestionsList" class="space-y-2"></div>
+        </div>
+        <div class="border-t border-slate-100 pt-4">
+          <div class="text-xs font-bold text-[#1E2235] mb-2">가입 회원 목록</div>
+          <div id="adminMembersList" class="space-y-1.5"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. 서브 관리자 계정 관리 모달 -->
+  <div id="adminsModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-extrabold text-[#1E2235]">관리자 계정 관리</h3>
+        <button type="button" onclick="closeModal('adminsModal')" class="text-slate-400 hover:text-slate-600 text-xs font-semibold">닫기</button>
+      </div>
+      <form onsubmit="addSubAdmin(event)" class="space-y-2.5 mb-4 pb-4 border-b border-slate-100">
+        <div class="grid grid-cols-2 gap-2">
+          <input id="newSubAdminId" type="text" required placeholder="서브 관리자 아이디" class="px-3 py-2 rounded-xl border border-slate-200 text-xs outline-none focus:border-[#5B6AD0]" />
+          <input id="newSubAdminPw" type="password" required placeholder="비밀번호" class="px-3 py-2 rounded-xl border border-slate-200 text-xs outline-none focus:border-[#5B6AD0]" />
+        </div>
+        <button type="submit" class="w-full py-2 rounded-xl bg-[#5B6AD0] text-white text-xs font-bold hover:bg-[#4A58B8]">서브 관리자 추가</button>
+      </form>
+      <div id="adminAccountsList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar"></div>
+    </div>
+  </div>
+
+  <!-- 11. 구글 시트 DB 연동 모달 -->
+  <div id="sheetsModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 max-h-[88vh] flex flex-col">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-extrabold text-[#1E2235]">구글 시트 DB 연동</h3>
+        <button type="button" onclick="closeModal('sheetsModal')" class="text-slate-400 hover:text-slate-600 text-xs font-semibold">닫기</button>
+      </div>
+      <div class="overflow-y-auto custom-scrollbar space-y-4 pr-1">
+        <div class="p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-100 text-xs text-slate-600 leading-relaxed">
+          Users, Suggestions, Projects, BGM_Playlist, SNS_Links, Site_Settings, Admins 7개 시트와 실시간으로 동기화됩니다.
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-[#1E2235] mb-1">Google Apps Script 웹 앱 URL</label>
+          <input id="sheetsUrlInput" type="url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs outline-none focus:border-[#5B6AD0]" />
+          <div id="sheetsStatusText" class="text-[11px] text-slate-500 mt-1.5">상태: 대기 중</div>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button type="button" onclick="saveAndTestSheetsUrl()" class="flex-1 py-2.5 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-xs font-bold">연결 테스트 및 시트에서 불러오기</button>
+          <button type="button" onclick="pushAllToSheets(true)" class="flex-1 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-bold text-[#1E2235]">현재 전체 데이터 시트로 저장</button>
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-bold text-[#1E2235]">Google Apps Script 백엔드 코드 (Code.gs)</span>
+            <button type="button" onclick="copyCodeGs()" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[11px] font-semibold text-slate-700">Code.gs 전체 복사</button>
+          </div>
+          <pre id="codeGsPreview" class="bg-[#1E2235] text-slate-200 p-3 rounded-xl text-[11px] overflow-x-auto max-h-40 custom-scrollbar"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ================= 상수 및 초기 설정 =================
+    const DEFAULT_SHEETS_URL = "https://script.google.com/macros/s/AKfycby0SeuS5Z29oTRiIstdlXWuhyuhKkPTvEhv-Js-nGVdZfmbBbpt28nNzoOSJFZ8HWsB/exec";
+    const STORAGE_KEY = "stellive_portal_state_v8";
+    const SHEETS_URL_KEY = "stellive_sheets_url_v8";
+
+    const MAIN_ADMIN = {
+      id: "dltjdgk0107",
+      email: "dltjdgk0107",
+      password: "dode0107**",
+      name: "dltjdgk0107",
+      role: "메인 관리자"
+    };
+
+    const SNS_PLATFORMS = {
+      youtube: { label: "YouTube", color: "#FF0000", svg: '<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="#FF0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>' },
+      chzzk: { label: "CHZZK", color: "#00C77B", svg: '<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="#00C77B"><path d="M13.8 2L5 13.5h6.2L9.8 22 19 10.5h-6.2L13.8 2z"/></svg>' },
+      soop: { label: "SOOP", color: "#0066FF", svg: '<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="#0066FF"><circle cx="12" cy="12" r="9"/></svg>' },
+      twitch: { label: "Twitch", color: "#9146FF", svg: '<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="#9146FF"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>' },
+      x: { label: "X", color: "#0F1419", svg: '<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="#0F1419"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>' },
+      instagram: { label: "Instagram", color: "#E4405F", svg: '<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="#E4405F"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>' },
+      tiktok: { label: "TikTok", color: "#000000", svg: '<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="#000000"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>' },
+      discord: { label: "Discord", color: "#5865F2", svg: '<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="#5865F2"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028z"/></svg>' },
+      navercafe: { label: "Naver Cafe", color: "#03C75A", svg: '<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="#03C75A"><path d="M16.273 12.845L7.376 0H0v24h7.726V11.156L16.624 24H24V0h-7.727v12.845z"/></svg>' },
+      naver: { label: "Naver", color: "#03C75A", svg: '<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="#03C75A"><path d="M16.273 12.845L7.376 0H0v24h7.726V11.156L16.624 24H24V0h-7.727v12.845z"/></svg>' },
+      soundcloud: { label: "SoundCloud", color: "#FF5500", svg: '<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="#FF5500"><path d="M11.56 8.87V17h8.76c1.85 0 3.35-1.67 3.35-3.73 0-1.91-1.3-3.48-2.98-3.7-.33-2.55-2.36-4.53-4.84-4.53-1.88 0-3.51 1.13-4.29 2.83z"/></svg>' },
+      spotify: { label: "Spotify", color: "#1DB954", svg: '<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="#1DB954"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>' },
+      facebook: { label: "Facebook", color: "#1877F2", svg: '<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>' },
+      threads: { label: "Threads", color: "#000000", svg: '<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="#000000"><circle cx="12" cy="12" r="9"/></svg>' },
+      github: { label: "GitHub", color: "#181717", svg: '<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="#181717"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>' },
+      website: { label: "Website", color: "#5B6AD0", svg: '<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="#5B6AD0" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>' }
+    };
+
+    const CODE_GS_TEMPLATE = `/**
+ * Stellive Fan Web Portal - Google Sheets Backend (Code.gs)
+ * 배포: [배포] > [새 배포] > 유형: [웹 앱] > 실행 사용자: [나] > 액세스 권한: [모든 사용자]
+ */
+var SHEET_SCHEMAS = {
+  Users: ['id', 'email', 'nickname', 'password', 'createdAt'],
+  Suggestions: ['id', 'userId', 'userNickname', 'userEmail', 'category', 'title', 'content', 'status', 'adminReply', 'createdAt', 'repliedAt'],
+  Projects: ['id', 'title', 'description', 'url', 'thumbnail', 'isPinned', 'pinnedAt'],
+  BGM_Playlist: ['id', 'title', 'artist', 'url', 'coverUrl'],
+  SNS_Links: ['id', 'platform', 'name', 'url', 'icon', 'description'],
+  Site_Settings: ['key', 'value'],
+  Admins: ['id', 'email', 'password', 'name', 'role', 'createdAt']
+};
+
+function getOrCreateSheet(ss, sheetName) {
+  var sheet = ss.getSheetByName(sheetName);
+  var headers = SHEET_SCHEMAS[sheetName];
+  if (!sheet) {
+    sheet = ss.insertSheet(sheetName);
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold').setBackground('#f3f4f6');
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+function readSheetData(ss, sheetName) {
+  var sheet = getOrCreateSheet(ss, sheetName);
+  var lastRow = sheet.getLastRow();
+  var headers = SHEET_SCHEMAS[sheetName];
+  if (lastRow <= 1) return [];
+  var values = sheet.getRange(2, 1, lastRow - 1, headers.length).getValues();
+  var result = [];
+  for (var i = 0; i < values.length; i++) {
+    var row = values[i];
+    if (row.join('').trim() === '') continue;
+    var obj = {};
+    for (var j = 0; j < headers.length; j++) {
+      var key = headers[j];
+      var val = row[j];
+      obj[key] = (key === 'isPinned') ? (val === true || String(val).toUpperCase() === 'TRUE') : (val !== null && val !== undefined ? String(val) : '');
+    }
+    result.push(obj);
+  }
+  return result;
+}
+
+function writeSheetData(ss, sheetName, rows) {
+  var sheet = getOrCreateSheet(ss, sheetName);
+  var headers = SHEET_SCHEMAS[sheetName];
+  sheet.clearContents();
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  if (!rows || !Array.isArray(rows) || rows.length === 0) return;
+  var output = rows.map(function(item) {
+    return headers.map(function(h) {
+      var val = item[h];
+      if (val === null || val === undefined) return '';
+      if (typeof val === 'boolean') return val;
+      return String(val);
+    });
+  });
+  sheet.getRange(2, 1, output.length, headers.length).setValues(output);
+}
+
+function doGet(e) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var data = {
+      users: readSheetData(ss, 'Users'),
+      suggestions: readSheetData(ss, 'Suggestions'),
+      projects: readSheetData(ss, 'Projects'),
+      bgm: readSheetData(ss, 'BGM_Playlist'),
+      sns: readSheetData(ss, 'SNS_Links'),
+      settings: {},
+      admins: readSheetData(ss, 'Admins')
+    };
+    var settingsRows = readSheetData(ss, 'Site_Settings');
+    for (var i = 0; i < settingsRows.length; i++) {
+      if (settingsRows[i].key) data.settings[settingsRows[i].key] = settingsRows[i].value;
+    }
+    return ContentService.createTextOutput(JSON.stringify({ ok: true, data: data })).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ ok: false, error: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doPost(e) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var payload = JSON.parse(e.postData.contents || '{}');
+    var state = payload.data || payload;
+    if (state.users) writeSheetData(ss, 'Users', state.users);
+    if (state.suggestions) writeSheetData(ss, 'Suggestions', state.suggestions);
+    if (state.projects) writeSheetData(ss, 'Projects', state.projects);
+    if (state.bgm) writeSheetData(ss, 'BGM_Playlist', state.bgm);
+    if (state.sns) writeSheetData(ss, 'SNS_Links', state.sns);
+    if (state.admins) writeSheetData(ss, 'Admins', state.admins);
+    if (state.settings) {
+      var arr = [];
+      for (var k in state.settings) {
+        if (Object.prototype.hasOwnProperty.call(state.settings, k)) arr.push({ key: k, value: String(state.settings[k]) });
+      }
+      writeSheetData(ss, 'Site_Settings', arr);
+    }
+    return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ ok: false, error: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}`;
+
+    // ================= 애플리케이션 상태 =================
+    let appState = {
+      settings: {
+        siteTitle: "Stellive Fan Web Portal",
+        siteDesc: "스텔라이브(Stellive) 팬메이드 웹 게임과 다양한 팬 아트를 한곳에서 즐길 수 있는 공간입니다.\n아래 프로젝트를 클릭해 바로 플레이해 보세요!",
+        logoDataUrl: ""
+      },
+      projects: [
+        {
+          id: "proj_1",
+          title: "아르냥을 던져라!",
+          description: "제 첫 웹 게임입니다! 유니만 생각하면서 만들었습니다! ( AI로 만들었습니다 )",
+          url: "https://stelliveart.github.io",
+          thumbnail: "",
+          isPinned: false,
+          pinnedAt: ""
+        },
+        {
+          id: "proj_2",
+          title: "스텔라이브 아트 프로젝트",
+          description: "스텔라이브 팬아트 및 미니 게임 프로젝트입니다.",
+          url: "https://stelliveart.github.io",
+          thumbnail: "",
+          isPinned: false,
+          pinnedAt: ""
+        }
+      ],
+      sns: [],
+      bgm: [],
+      users: [],
+      suggestions: [],
+      admins: [MAIN_ADMIN]
+    };
+
+    let currentAdmin = null;
+    let currentMember = null;
+    let isRegisterMode = false;
+    let tempProjectThumb = "";
+    let tempLogoDataUrl = "";
+    let pendingBgmFile = null;
+    let currentBgmIndex = 0;
+    let isBgmPlaying = false;
+    let bgmObjectUrlCache = {};
+    let memoryBgmFiles = {};
+
+    // ================= 안전 다중 저장 엔진 (메모리 + IndexedDB ArrayBuffer) =================
+    function openBgmDb() {
+      return new Promise((resolve, reject) => {
+        try {
+          if (!window.indexedDB) {
+            reject(new Error("IndexedDB unavailable"));
+            return;
+          }
+          const req = window.indexedDB.open("StelliveBgmStorage_v2", 1);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains("tracks")) {
+              db.createObjectStore("tracks", { keyPath: "id" });
+            }
+          };
+          req.onsuccess = (e) => resolve(e.target.result);
+          req.onerror = (e) => reject(e.target.error || new Error("IDB open failed"));
+        } catch (err) {
+          reject(err);
+        }
+      });
+    }
+
+    async function saveBgmFileResilient(id, fileObj) {
+      memoryBgmFiles[id] = fileObj;
+      try {
+        bgmObjectUrlCache[id] = URL.createObjectURL(fileObj);
+      } catch (e) {}
+
+      try {
+        const buffer = await fileObj.arrayBuffer();
+        const mimeType = fileObj.type || (fileObj.name.toLowerCase().endsWith(".mp4") ? "video/mp4" : "audio/mpeg");
+        const db = await openBgmDb();
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction("tracks", "readwrite");
+          tx.objectStore("tracks").put({
+            id: id,
+            buffer: buffer,
+            type: mimeType,
+            name: fileObj.name
+          });
+          tx.oncomplete = () => resolve();
+          tx.onerror = (e) => reject(e.target.error);
+        });
+      } catch (dbErr) {
+        console.warn("IndexedDB persistence skipped:", dbErr);
+      }
+    }
+
+    async function getBgmPlayableUrl(track) {
+      if (bgmObjectUrlCache[track.id]) {
+        return bgmObjectUrlCache[track.id];
+      }
+      if (memoryBgmFiles[track.id]) {
+        const url = URL.createObjectURL(memoryBgmFiles[track.id]);
+        bgmObjectUrlCache[track.id] = url;
+        return url;
+      }
+      try {
+        const db = await openBgmDb();
+        const record = await new Promise((resolve) => {
+          const tx = db.transaction("tracks", "readonly");
+          const req = tx.objectStore("tracks").get(track.id);
+          req.onsuccess = () => resolve(req.result || null);
+          req.onerror = () => resolve(null);
+        });
+        if (record && record.buffer) {
+          const blob = new Blob([record.buffer], { type: record.type || "audio/mpeg" });
+          const url = URL.createObjectURL(blob);
+          bgmObjectUrlCache[track.id] = url;
+          return url;
+        }
+      } catch (e) {}
+
+      if (track.url && !track.url.startsWith("local_idb://")) {
+        return track.url;
+      }
+      return null;
+    }
+
+    async function deleteBgmBlobFromDb(id) {
+      delete memoryBgmFiles[id];
+      if (bgmObjectUrlCache[id]) {
+        try { URL.revokeObjectURL(bgmObjectUrlCache[id]); } catch (e) {}
+        delete bgmObjectUrlCache[id];
+      }
+      try {
+        const db = await openBgmDb();
+        const tx = db.transaction("tracks", "readwrite");
+        tx.objectStore("tracks").delete(id);
+      } catch (e) {}
+    }
+
+    // ================= 초기화 =================
+    window.addEventListener("DOMContentLoaded", async () => {
+      loadLocalState();
+      const savedUrl = localStorage.getItem(SHEETS_URL_KEY) || DEFAULT_SHEETS_URL;
+      document.getElementById("sheetsUrlInput").value = savedUrl;
+      document.getElementById("codeGsPreview").textContent = CODE_GS_TEMPLATE;
+
+      renderAll();
+      setupAudioEvents();
+
+      if (savedUrl) {
+        await pullFromSheets(false);
+      }
+    });
+
+    document.addEventListener("click", (e) => {
+      const wrapper = document.getElementById("adminDropdownWrapper");
+      const menu = document.getElementById("adminDropdownMenu");
+      if (wrapper && menu && !wrapper.contains(e.target)) {
+        menu.classList.add("hidden");
+      }
+    });
+
+    function loadLocalState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          appState = { ...appState, ...parsed };
+          if (!appState.admins || !appState.admins.some(a => a.id === MAIN_ADMIN.id)) {
+            appState.admins = [MAIN_ADMIN, ...(appState.admins || [])];
+          }
+        }
+      } catch (e) {}
+    }
+
+    function saveLocalState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (e) {}
+    }
+
+    function showToast(msg, isError = false) {
+      const container = document.getElementById("toastContainer");
+      const el = document.createElement("div");
+      el.className = `px-4 py-3 rounded-xl text-xs font-semibold shadow-lg transition-all duration-300 ${
+        isError ? "bg-rose-600 text-white" : "bg-[#1E2235] text-white"
+      }`;
+      el.textContent = msg;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = "0";
+        setTimeout(() => el.remove(), 300);
+      }, 3000);
+    }
+
+    // ================= 전체 화면 렌더링 =================
+    function renderAll() {
+      renderHeaderLogo();
+      renderHeaderSns();
+      renderBanner();
+      renderProjects();
+      renderBgmPlayerSelect();
+      renderAuthControls();
+    }
+
+    function renderHeaderLogo() {
+      const container = document.getElementById("headerLogoContainer");
+      if (appState.settings.logoDataUrl) {
+        container.innerHTML = `<img src="${appState.settings.logoDataUrl}" alt="Logo" class="h-8 w-auto max-w-[140px] object-contain" />`;
+      } else {
+        container.innerHTML = `
+          <svg class="w-6 h-6 text-[#5B6AD0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          <span class="font-extrabold text-lg tracking-tight text-[#1E2235]">STELLIVE</span>
+        `;
+      }
+    }
+
+    function renderHeaderSns() {
+      const container = document.getElementById("headerSnsList");
+      if (!appState.sns || appState.sns.length === 0) {
+        container.innerHTML = "";
+        return;
+      }
+      container.innerHTML = appState.sns.map(item => {
+        const plat = SNS_PLATFORMS[item.platform] || SNS_PLATFORMS.website;
+        return `
+          <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer"
+             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-slate-200 hover:border-[#5B6AD0] hover:bg-slate-50 text-xs font-semibold text-[#1E2235] transition shrink-0 shadow-2xs">
+            ${plat.svg}
+            <span>${escapeHtml(item.name)}</span>
+          </a>
+        `;
+      }).join("");
+    }
+
+    function renderBanner() {
+      document.getElementById("siteTitleDisplay").textContent = appState.settings.siteTitle || "Stellive Fan Web Portal";
+      document.getElementById("siteDescDisplay").textContent = appState.settings.siteDesc || "";
+    }
+
+    function handleThumbError(imgEl) {
+      if (imgEl && imgEl.parentElement) {
+        imgEl.parentElement.innerHTML = '<span class="text-sm font-extrabold text-[#5B6AD0]">Stellive Project</span>';
+      }
+    }
+
+    function renderProjects() {
+      const grid = document.getElementById("projectsGrid");
+      const sorted = [...(appState.projects || [])].sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
+
+      if (sorted.length === 0) {
+        grid.innerHTML = `<div class="col-span-full text-center py-16 text-sm text-slate-400 bg-white rounded-2xl border border-slate-200/80">등록된 프로젝트가 없습니다.</div>`;
+        return;
+      }
+
+      grid.innerHTML = sorted.map(proj => {
+        const hasThumb = proj.thumbnail && proj.thumbnail.trim() !== "";
+        const thumbHtml = hasThumb
+          ? `<img src="${escapeHtml(proj.thumbnail)}" alt="${escapeHtml(proj.title)}" onerror="handleThumbError(this)" class="w-full h-full object-cover" />`
+          : `<span class="text-sm font-extrabold text-[#5B6AD0]">Stellive Project</span>`;
+
+        const adminActions = currentAdmin ? `
+          <div class="grid grid-cols-3 gap-2 mt-2.5 pt-2.5 border-t border-slate-100">
+            <button type="button" onclick="togglePinProject('${proj.id}')" class="py-1.5 rounded-lg border ${proj.isPinned ? 'border-[#5B6AD0] bg-indigo-50 text-[#5B6AD0]' : 'border-slate-200 text-slate-600 hover:bg-slate-50'} text-xs font-semibold transition">
+              ${proj.isPinned ? '고정됨' : '고정'}
+            </button>
+            <button type="button" onclick="openEditProjectModal('${proj.id}')" class="py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold transition">
+              수정
+            </button>
+            <button type="button" onclick="deleteProject('${proj.id}')" class="py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold transition">
+              삭제
+            </button>
+          </div>
+        ` : "";
+
+        return `
+          <article class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col justify-between transition hover:shadow-md">
+            <div>
+              <div class="w-full h-44 bg-[#EAEFF8] flex items-center justify-center overflow-hidden">
+                ${thumbHtml}
+              </div>
+              <div class="p-5 pb-3">
+                <div class="flex items-center justify-between gap-2 mb-1.5">
+                  <h2 class="text-base font-extrabold text-[#1E2235] truncate">${escapeHtml(proj.title)}</h2>
+                  ${proj.isPinned ? '<span class="px-2 py-0.5 rounded-md bg-indigo-50 text-[#5B6AD0] text-[10px] font-bold shrink-0">고정</span>' : ''}
+                </div>
+                <p class="text-xs text-slate-500 leading-relaxed line-clamp-2 min-h-[2.4rem]">${escapeHtml(proj.description)}</p>
+              </div>
+            </div>
+            <div class="px-5 pb-5">
+              <a href="${escapeHtml(proj.url)}" target="_blank" rel="noopener noreferrer" class="block w-full py-2.5 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-center text-xs font-bold transition shadow-xs">
+                바로가기
+              </a>
+              ${adminActions}
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderAuthControls() {
+      const adminLoginBtn = document.getElementById("adminLoginBtn");
+      const adminConsoleBtn = document.getElementById("adminConsoleBtn");
+      const heroEditDescBtn = document.getElementById("heroEditDescBtn");
+      const userAuthBtn = document.getElementById("userAuthBtn");
+
+      if (currentAdmin) {
+        adminLoginBtn.classList.add("hidden");
+        adminConsoleBtn.classList.remove("hidden");
+        heroEditDescBtn.classList.remove("hidden");
+        document.getElementById("adminDisplayId").textContent = currentAdmin.id;
+        document.getElementById("adminDisplayRole").textContent = currentAdmin.role || "관리자";
+      } else {
+        adminLoginBtn.classList.remove("hidden");
+        adminConsoleBtn.classList.add("hidden");
+        heroEditDescBtn.classList.add("hidden");
+      }
+
+      if (currentMember) {
+        userAuthBtn.textContent = currentMember.nickname || currentMember.id;
+      } else {
+        userAuthBtn.textContent = "회원 로그인";
+      }
+    }
+
+    // ================= 모달 제어 =================
+    function openModal(id) {
+      document.getElementById("adminDropdownMenu").classList.add("hidden");
+      document.getElementById(id).classList.remove("hidden");
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add("hidden");
+    }
+
+    function toggleAdminMenu() {
+      document.getElementById("adminDropdownMenu").classList.toggle("hidden");
+    }
+
+    // ================= 관리자 및 일반 회원 인증 =================
+    function openAdminLoginModal() {
+      openModal("adminLoginModal");
+    }
+
+    function handleAdminLogin(e) {
+      e.preventDefault();
+      const idInput = document.getElementById("adminLoginId").value.trim();
+      const pwInput = document.getElementById("adminLoginPw").value;
+
+      const found = (appState.admins || []).find(a => (a.id === idInput || a.email === idInput) && a.password === pwInput);
+      if (found) {
+        currentAdmin = found;
+        closeModal("adminLoginModal");
+        renderAll();
+        showToast(`${found.id} 관리자 계정으로 로그인되었습니다.`);
+      } else {
+        showToast("관리자 아이디 또는 비밀번호가 일치하지 않습니다.", true);
+      }
+    }
+
+    function logoutAdmin() {
+      currentAdmin = null;
+      document.getElementById("adminDropdownMenu").classList.add("hidden");
+      renderAll();
+      showToast("관리자 로그아웃되었습니다.");
+    }
+
+    function openUserAuthModal() {
+      isRegisterMode = false;
+      updateUserAuthModalUI();
+      openModal("userAuthModal");
+    }
+
+    function toggleUserAuthMode() {
+      isRegisterMode = !isRegisterMode;
+      updateUserAuthModalUI();
+    }
+
+    function updateUserAuthModalUI() {
+      const loggedBox = document.getElementById("userLoggedInBox");
+      const form = document.getElementById("userAuthForm");
+      if (currentMember) {
+        loggedBox.classList.remove("hidden");
+        form.classList.add("hidden");
+        document.getElementById("loggedInUserLabel").textContent = `${currentMember.id} (${currentMember.nickname || currentMember.id})`;
+        return;
+      }
+      loggedBox.classList.add("hidden");
+      form.classList.remove("hidden");
+      document.getElementById("userAuthTitle").textContent = isRegisterMode ? "회원가입" : "회원 로그인";
+      document.getElementById("memberNicknameField").classList.toggle("hidden", !isRegisterMode);
+      document.getElementById("userAuthSubmitBtn").textContent = isRegisterMode ? "아이디로 가입하기" : "로그인";
+      document.getElementById("userAuthSwitchBtn").textContent = isRegisterMode ? "이미 계정이 있으신가요? 로그인" : "계정이 없으신가요? 아이디로 회원가입";
+    }
+
+    async function handleUserAuth(e) {
+      e.preventDefault();
+      const userId = document.getElementById("memberUserIdInput").value.trim();
+      const nickname = document.getElementById("memberNicknameInput").value.trim() || userId;
+      const pw = document.getElementById("memberPwInput").value;
+
+      if (isRegisterMode) {
+        if ((appState.users || []).some(u => u.id === userId || u.email === userId)) {
+          showToast("이미 사용 중인 아이디입니다.", true);
+          return;
+        }
+        const newUser = {
+          id: userId,
+          email: userId,
+          nickname: nickname,
+          password: pw,
+          createdAt: new Date().toISOString()
+        };
+        appState.users.push(newUser);
+        currentMember = newUser;
+        saveLocalState();
+        closeModal("userAuthModal");
+        renderAuthControls();
+        showToast("회원가입이 완료되었습니다.");
+        await pushAllToSheets(false);
+      } else {
+        const found = (appState.users || []).find(u => (u.id === userId || u.email === userId) && u.password === pw);
+        if (found) {
+          currentMember = found;
+          closeModal("userAuthModal");
+          renderAuthControls();
+          showToast(`${found.nickname || found.id}님 환영합니다.`);
+        } else {
+          showToast("아이디 또는 비밀번호를 확인해 주세요.", true);
+        }
+      }
+    }
+
+    function logoutMember() {
+      currentMember = null;
+      closeModal("userAuthModal");
+      renderAuthControls();
+      showToast("로그아웃되었습니다.");
+    }
+
+    // ================= 프로젝트 등록/수정 (파일 업로드 썸네일) =================
+    function openProjectModal() {
+      document.getElementById("projectModalTitle").textContent = "프로젝트 등록";
+      document.getElementById("editProjectId").value = "";
+      document.getElementById("projTitle").value = "";
+      document.getElementById("projDesc").value = "";
+      document.getElementById("projUrl").value = "";
+      document.getElementById("projThumbFile").value = "";
+      tempProjectThumb = "";
+      document.getElementById("projThumbPreviewBox").innerHTML = `<span class="text-xs font-bold text-[#5B6AD0]">Stellive Project</span>`;
+      openModal("projectModal");
+    }
+
+    function openEditProjectModal(id) {
+      const proj = appState.projects.find(p => p.id === id);
+      if (!proj) return;
+      document.getElementById("projectModalTitle").textContent = "프로젝트 수정";
+      document.getElementById("editProjectId").value = proj.id;
+      document.getElementById("projTitle").value = proj.title;
+      document.getElementById("projDesc").value = proj.description;
+      document.getElementById("projUrl").value = proj.url;
+      document.getElementById("projThumbFile").value = "";
+      tempProjectThumb = proj.thumbnail || "";
+      document.getElementById("projThumbPreviewBox").innerHTML = tempProjectThumb
+        ? `<img src="${tempProjectThumb}" class="w-full h-full object-cover" />`
+        : `<span class="text-xs font-bold text-[#5B6AD0]">Stellive Project</span>`;
+      openModal("projectModal");
+    }
+
+    function previewProjectThumbFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      resizeImageFile(file, 720, 0.82, (dataUrl) => {
+        tempProjectThumb = dataUrl;
+        document.getElementById("projThumbPreviewBox").innerHTML = `<img src="${dataUrl}" class="w-full h-full object-cover" />`;
+      });
+    }
+
+    function clearProjectThumb() {
+      tempProjectThumb = "";
+      document.getElementById("projThumbFile").value = "";
+      document.getElementById("projThumbPreviewBox").innerHTML = `<span class="text-xs font-bold text-[#5B6AD0]">Stellive Project</span>`;
+    }
+
+    async function saveProject(e) {
+      e.preventDefault();
+      const editId = document.getElementById("editProjectId").value;
+      const title = document.getElementById("projTitle").value.trim();
+      const description = document.getElementById("projDesc").value.trim();
+      const url = document.getElementById("projUrl").value.trim();
+
+      if (editId) {
+        const idx = appState.projects.findIndex(p => p.id === editId);
+        if (idx !== -1) {
+          appState.projects[idx] = { ...appState.projects[idx], title, description, url, thumbnail: tempProjectThumb };
+        }
+      } else {
+        appState.projects.push({
+          id: "proj_" + Date.now(),
+          title,
+          description,
+          url,
+          thumbnail: tempProjectThumb,
+          isPinned: false,
+          pinnedAt: ""
+        });
+      }
+
+      saveLocalState();
+      renderProjects();
+      closeModal("projectModal");
+      showToast("프로젝트가 저장되었습니다.");
+      await pushAllToSheets(false);
+    }
+
+    async function togglePinProject(id) {
+      const proj = appState.projects.find(p => p.id === id);
+      if (!proj) return;
+      proj.isPinned = !proj.isPinned;
+      proj.pinnedAt = proj.isPinned ? new Date().toISOString() : "";
+      saveLocalState();
+      renderProjects();
+      await pushAllToSheets(false);
+    }
+
+    async function deleteProject(id) {
+      appState.projects = appState.projects.filter(p => p.id !== id);
+      saveLocalState();
+      renderProjects();
+      showToast("프로젝트가 삭제되었습니다.");
+      await pushAllToSheets(false);
+    }
+
+    // ================= 웹사이트 설명창 수정 =================
+    function openBannerEditModal() {
+      document.getElementById("editSiteTitleInput").value = appState.settings.siteTitle || "";
+      document.getElementById("editSiteDescInput").value = appState.settings.siteDesc || "";
+      openModal("bannerEditModal");
+    }
+
+    async function saveBannerSettings(e) {
+      e.preventDefault();
+      appState.settings.siteTitle = document.getElementById("editSiteTitleInput").value.trim();
+      appState.settings.siteDesc = document.getElementById("editSiteDescInput").value.trim();
+      saveLocalState();
+      renderBanner();
+      closeModal("bannerEditModal");
+      showToast("웹사이트 설명창이 수정되었습니다.");
+      await pushAllToSheets(false);
+    }
+
+    // ================= SNS 링크 관리 (플랫폼 선택 + 버튼 표시 이름 + URL) =================
+    function openSnsModal() {
+      renderSnsModalContent();
+      openModal("snsModal");
+    }
+
+    function handlePlatformSelectChange(selectEl) {
+      const nameInput = document.getElementById("snsNameInput");
+      if (!nameInput.value.trim()) {
+        const plat = SNS_PLATFORMS[selectEl.value];
+        if (plat) nameInput.placeholder = `예: ${plat.label}`;
+      }
+    }
+
+    function renderSnsModalContent() {
+      const list = document.getElementById("adminSnsList");
+      if (!appState.sns || appState.sns.length === 0) {
+        list.innerHTML = `<div class="text-xs text-slate-400 py-4 text-center border border-dashed border-slate-200 rounded-xl">등록된 SNS 링크가 없습니다.</div>`;
+        return;
+      }
+
+      list.innerHTML = appState.sns.map(item => {
+        const plat = SNS_PLATFORMS[item.platform] || SNS_PLATFORMS.website;
+        return `
+          <div class="flex items-center justify-between gap-2.5 p-2.5 rounded-xl border border-slate-200 bg-white">
+            <div class="flex items-center gap-2.5 min-w-0">
+              ${plat.svg}
+              <div class="min-w-0">
+                <div class="text-xs font-bold text-[#1E2235] truncate">${escapeHtml(item.name)}</div>
+                <div class="text-[11px] text-slate-400 truncate">${escapeHtml(item.url)}</div>
+              </div>
+            </div>
+            <button type="button" onclick="deleteSnsLink('${item.id}')" class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-600 text-[11px] font-semibold hover:bg-rose-100 shrink-0">삭제</button>
+          </div>
+        `;
+      }).join("");
+    }
+
+    async function addSnsLink(e) {
+      e.preventDefault();
+      const platform = document.getElementById("snsPlatformSelect").value;
+      const name = document.getElementById("snsNameInput").value.trim();
+      const url = document.getElementById("snsUrlInput").value.trim();
+
+      appState.sns.push({
+        id: "sns_" + Date.now(),
+        platform,
+        name,
+        url,
+        icon: platform,
+        description: ""
+      });
+
+      document.getElementById("snsNameInput").value = "";
+      document.getElementById("snsUrlInput").value = "";
+      saveLocalState();
+      renderHeaderSns();
+      renderSnsModalContent();
+      showToast("SNS 링크가 등록되었습니다.");
+      await pushAllToSheets(false);
+    }
+
+    async function deleteSnsLink(id) {
+      appState.sns = appState.sns.filter(s => s.id !== id);
+      saveLocalState();
+      renderHeaderSns();
+      renderSnsModalContent();
+      showToast("SNS 링크가 삭제되었습니다.");
+      await pushAllToSheets(false);
+    }
+
+    // ================= BGM 배경음악 관리 (최대 100MB MP3/MP4 + 번호 순서 선택) =================
+    function openBgmModal() {
+      pendingBgmFile = null;
+      document.getElementById("bgmFileInput").value = "";
+      document.getElementById("bgmSelectedFileInfo").textContent = "선택된 파일 없음";
+      document.getElementById("bgmTitleInput").value = "";
+      renderAdminBgmList();
+      openModal("bgmModal");
+    }
+
+    function handleBgmFileChosen(e) {
+      const file = e.target.files[0];
+      if (!file) {
+        pendingBgmFile = null;
+        document.getElementById("bgmSelectedFileInfo").textContent = "선택된 파일 없음";
+        return;
+      }
+      const maxBytes = 100 * 1024 * 1024;
+      if (file.size > maxBytes) {
+        showToast("파일 크기는 100MB 이하만 등록할 수 있습니다.", true);
+        e.target.value = "";
+        pendingBgmFile = null;
+        return;
+      }
+      pendingBgmFile = file;
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+      document.getElementById("bgmSelectedFileInfo").textContent = `${file.name} (${sizeMb} MB)`;
+      const titleInput = document.getElementById("bgmTitleInput");
+      if (!titleInput.value.trim()) {
+        titleInput.value = file.name.replace(/\.[^/.]+$/, "");
+      }
+    }
+
+    async function registerBgmTrack(e) {
+      e.preventDefault();
+      const fileInput = document.getElementById("bgmFileInput");
+      const chosenFile = pendingBgmFile || (fileInput.files && fileInput.files[0]);
+
+      if (!chosenFile) {
+        showToast("먼저 MP3 또는 MP4 파일을 선택해 주세요.", true);
+        return;
+      }
+
+      const btn = document.getElementById("bgmRegisterSubmitBtn");
+      btn.disabled = true;
+      btn.textContent = "등록 중...";
+
+      try {
+        const trackId = "bgm_" + Date.now();
+        const title = document.getElementById("bgmTitleInput").value.trim() || chosenFile.name.replace(/\.[^/.]+$/, "");
+        const artist = document.getElementById("bgmArtistInput").value.trim() || "Stellive";
+
+        await saveBgmFileResilient(trackId, chosenFile);
+
+        appState.bgm.push({
+          id: trackId,
+          title: title,
+          artist: artist,
+          url: "local_idb://" + trackId,
+          coverUrl: ""
+        });
+
+        saveLocalState();
+        pendingBgmFile = null;
+        fileInput.value = "";
+        document.getElementById("bgmSelectedFileInfo").textContent = "선택된 파일 없음";
+        document.getElementById("bgmTitleInput").value = "";
+
+        renderAdminBgmList();
+        renderBgmPlayerSelect();
+        showToast(`${appState.bgm.length}번 곡으로 등록되었습니다.`);
+        pushAllToSheets(false);
+      } catch (err) {
+        console.error(err);
+        showToast("파일 처리 중 문제가 발생했습니다. 다시 시도해 주세요.", true);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "노래 등록하기";
+      }
+    }
+
+    function renderAdminBgmList() {
+      const list = document.getElementById("adminBgmList");
+      const countEl = document.getElementById("bgmTotalCount");
+      const total = appState.bgm.length;
+      countEl.textContent = `${total}곡`;
+
+      if (total === 0) {
+        list.innerHTML = `<div class="text-xs text-slate-400 py-4 text-center border border-dashed border-slate-200 rounded-xl">등록된 노래가 없습니다. 위에서 MP3/MP4 파일을 등록하세요.</div>`;
+        return;
+      }
+
+      list.innerHTML = appState.bgm.map((track, idx) => {
+        const optionsHtml = Array.from({ length: total }, (_, n) =>
+          `<option value="${n}" ${n === idx ? "selected" : ""}>${n + 1}번</option>`
+        ).join("");
+
+        return `
+          <div class="flex items-center justify-between gap-2.5 p-3 rounded-xl border border-slate-200 bg-white">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <select onchange="moveBgmTrackToIndex(${idx}, Number(this.value))" aria-label="재생 순서 번호 선택"
+                      class="px-2 py-1 rounded-lg border border-slate-200 bg-[#F4F6FA] text-xs font-extrabold text-[#5B6AD0] outline-none cursor-pointer">
+                ${optionsHtml}
+              </select>
+              <div class="min-w-0">
+                <div class="text-xs font-bold text-[#1E2235] truncate">${escapeHtml(track.title)}</div>
+                <div class="text-[11px] text-slate-400 truncate">${escapeHtml(track.artist || "Stellive")}</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button type="button" onclick="playSpecificBgm(${idx})" class="px-2.5 py-1 rounded-lg bg-indigo-50 text-[#5B6AD0] text-[11px] font-semibold hover:bg-indigo-100">재생</button>
+              <button type="button" onclick="deleteBgmTrack('${track.id}')" class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-600 text-[11px] font-semibold hover:bg-rose-100">삭제</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    async function moveBgmTrackToIndex(fromIdx, toIdx) {
+      if (fromIdx === toIdx || toIdx < 0 || toIdx >= appState.bgm.length) return;
+      const [moved] = appState.bgm.splice(fromIdx, 1);
+      appState.bgm.splice(toIdx, 0, moved);
+      currentBgmIndex = toIdx;
+      saveLocalState();
+      renderAdminBgmList();
+      renderBgmPlayerSelect();
+      showToast(`${toIdx + 1}번 순서로 변경되었습니다.`);
+      await pushAllToSheets(false);
+    }
+
+    async function deleteBgmTrack(id) {
+      appState.bgm = appState.bgm.filter(b => b.id !== id);
+      await deleteBgmBlobFromDb(id);
+      if (currentBgmIndex >= appState.bgm.length) currentBgmIndex = 0;
+      saveLocalState();
+      renderAdminBgmList();
+      renderBgmPlayerSelect();
+      showToast("노래가 삭제되었습니다.");
+      await pushAllToSheets(false);
+    }
+
+    // ================= BGM 순차 재생 엔진 =================
+    function renderBgmPlayerSelect() {
+      const selDesktop = document.getElementById("bgmTrackSelect");
+      const selMobile = document.getElementById("bgmTrackSelectMobile");
+      if (!appState.bgm || appState.bgm.length === 0) {
+        const emptyOpt = `<option value="">BGM 미설정</option>`;
+        if (selDesktop) selDesktop.innerHTML = emptyOpt;
+        if (selMobile) selMobile.innerHTML = emptyOpt;
+        return;
+      }
+      const opts = appState.bgm.map((t, idx) =>
+        `<option value="${idx}" ${idx === currentBgmIndex ? "selected" : ""}>${idx + 1}. ${escapeHtml(t.title)}</option>`
+      ).join("");
+      if (selDesktop) selDesktop.innerHTML = opts;
+      if (selMobile) selMobile.innerHTML = opts;
+    }
+
+    function setupAudioEvents() {
+      const audio = document.getElementById("bgmMediaPlayer");
+      audio.volume = 0.5;
+      audio.addEventListener("ended", () => {
+        nextBgmTrack();
+      });
+      audio.addEventListener("play", () => {
+        isBgmPlaying = true;
+        updatePlayButtonIcon();
+      });
+      audio.addEventListener("pause", () => {
+        isBgmPlaying = false;
+        updatePlayButtonIcon();
+      });
+    }
+
+    function updatePlayButtonIcon() {
+      const icons = [
+        document.getElementById("bgmPlayIcon"),
+        document.getElementById("bgmPlayIconMobile")
+      ];
+      icons.forEach(icon => {
+        if (!icon) return;
+        if (isBgmPlaying) {
+          icon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+          icon.classList.remove("ml-0.5");
+        } else {
+          icon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+          icon.classList.add("ml-0.5");
+        }
+      });
+    }
+
+    async function loadAndPlayTrack(index) {
+      if (!appState.bgm || appState.bgm.length === 0) {
+        showToast("등록된 BGM이 없습니다.", true);
+        return;
+      }
+      currentBgmIndex = index % appState.bgm.length;
+      if (currentBgmIndex < 0) currentBgmIndex = appState.bgm.length - 1;
+
+      const track = appState.bgm[currentBgmIndex];
+      const audio = document.getElementById("bgmMediaPlayer");
+      const selDesktop = document.getElementById("bgmTrackSelect");
+      const selMobile = document.getElementById("bgmTrackSelectMobile");
+      if (selDesktop) selDesktop.value = String(currentBgmIndex);
+      if (selMobile) selMobile.value = String(currentBgmIndex);
+
+      const srcUrl = await getBgmPlayableUrl(track);
+      if (!srcUrl) {
+        showToast("오디오 파일을 찾을 수 없습니다. 다시 등록해 주세요.", true);
+        return;
+      }
+
+      audio.src = srcUrl;
+      try {
+        await audio.play();
+      } catch (err) {
+        showToast("재생 버튼을 한 번 더 눌러주세요.");
+      }
+    }
+
+    async function toggleBgmPlay() {
+      const audio = document.getElementById("bgmMediaPlayer");
+      if (!appState.bgm || appState.bgm.length === 0) {
+        showToast("관리자 콘솔에서 BGM을 먼저 등록해 주세요.", true);
+        return;
+      }
+      if (audio.paused) {
+        if (!audio.src) {
+          await loadAndPlayTrack(currentBgmIndex);
+        } else {
+          await audio.play();
+        }
+      } else {
+        audio.pause();
+      }
+    }
+
+    async function selectBgmTrackByIndex(val) {
+      if (val === "") return;
+      await loadAndPlayTrack(Number(val));
+    }
+
+    async function playSpecificBgm(idx) {
+      await loadAndPlayTrack(idx);
+    }
+
+    async function nextBgmTrack() {
+      if (!appState.bgm || appState.bgm.length === 0) return;
+      await loadAndPlayTrack(currentBgmIndex + 1);
+    }
+
+    async function prevBgmTrack() {
+      if (!appState.bgm || appState.bgm.length === 0) return;
+      await loadAndPlayTrack(currentBgmIndex - 1);
+    }
+
+    function toggleBgmMute() {
+      const audio = document.getElementById("bgmMediaPlayer");
+      audio.muted = !audio.muted;
+      document.getElementById("bgmVolIcon").style.opacity = audio.muted ? "0.35" : "1";
+    }
+
+    function changeBgmVolume(val) {
+      const audio = document.getElementById("bgmMediaPlayer");
+      audio.volume = Number(val);
+      audio.muted = Number(val) === 0;
+    }
+
+    // ================= 로고 이미지 파일 업로드 =================
+    function openLogoModal() {
+      tempLogoDataUrl = appState.settings.logoDataUrl || "";
+      document.getElementById("logoFileInput").value = "";
+      document.getElementById("logoPreviewArea").innerHTML = tempLogoDataUrl
+        ? `<img src="${tempLogoDataUrl}" class="max-h-14 object-contain" />`
+        : `<span class="text-xs font-bold text-slate-500">기본 STELLIVE 로고</span>`;
+      openModal("logoModal");
+    }
+
+    function previewLogoFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      resizeImageFile(file, 320, 0.85, (dataUrl) => {
+        tempLogoDataUrl = dataUrl;
+        document.getElementById("logoPreviewArea").innerHTML = `<img src="${dataUrl}" class="max-h-14 object-contain" />`;
+      });
+    }
+
+    async function saveLogoFile() {
+      appState.settings.logoDataUrl = tempLogoDataUrl;
+      saveLocalState();
+      renderHeaderLogo();
+      closeModal("logoModal");
+      showToast("로고 이미지가 변경되었습니다.");
+      await pushAllToSheets(false);
+    }
+
+    async function resetLogoToDefault() {
+      tempLogoDataUrl = "";
+      appState.settings.logoDataUrl = "";
+      saveLocalState();
+      renderHeaderLogo();
+      closeModal("logoModal");
+      showToast("기본 로고로 복원되었습니다.");
+      await pushAllToSheets(false);
+    }
+
+    // ================= 건의사항 및 서브 관리자 관리 =================
+    function openSuggestionSubmitModal() {
+      openModal("suggestionSubmitModal");
+    }
+
+    async function submitSuggestion(e) {
+      e.preventDefault();
+      const title = document.getElementById("sugTitleInput").value.trim();
+      const content = document.getElementById("sugContentInput").value.trim();
+      appState.suggestions.push({
+        id: "sug_" + Date.now(),
+        userId: currentMember ? currentMember.id : "guest",
+        userNickname: currentMember ? (currentMember.nickname || currentMember.id) : "방문자",
+        userEmail: currentMember ? currentMember.id : "guest",
+        category: "일반",
+        title,
+        content,
+        status: "대기",
+        adminReply: "",
+        createdAt: new Date().toISOString(),
+        repliedAt: ""
+      });
+      document.getElementById("sugTitleInput").value = "";
+      document.getElementById("sugContentInput").value = "";
+      saveLocalState();
+      closeModal("suggestionSubmitModal");
+      showToast("건의사항이 등록되었습니다.");
+      await pushAllToSheets(false);
+    }
+
+    function openSuggestionsAdminModal() {
+      const sugList = document.getElementById("adminSuggestionsList");
+      sugList.innerHTML = (appState.suggestions || []).length === 0
+        ? `<div class="text-xs text-slate-400">접수된 건의사항이 없습니다.</div>`
+        : appState.suggestions.map(s => `
+          <div class="p-3 rounded-xl border border-slate-200 text-xs space-y-1">
+            <div class="font-bold text-[#1E2235]">${escapeHtml(s.title)} <span class="text-slate-400 font-normal">(${escapeHtml(s.userNickname)})</span></div>
+            <div class="text-slate-600">${escapeHtml(s.content)}</div>
+          </div>
+        `).join("");
+
+      const memList = document.getElementById("adminMembersList");
+      memList.innerHTML = (appState.users || []).length === 0
+        ? `<div class="text-xs text-slate-400">가입된 회원이 없습니다.</div>`
+        : appState.users.map(u => `
+          <div class="px-3 py-2 rounded-xl bg-[#F4F6FA] text-xs flex justify-between">
+            <span class="font-bold text-[#1E2235]">${escapeHtml(u.id)}</span>
+            <span class="text-slate-500">${escapeHtml(u.nickname || u.id)}</span>
+          </div>
+        `).join("");
+
+      openModal("suggestionsAdminModal");
+    }
+
+    function openAdminsModal() {
+      renderAdminAccountsList();
+      openModal("adminsModal");
+    }
+
+    function renderAdminAccountsList() {
+      const container = document.getElementById("adminAccountsList");
+      container.innerHTML = (appState.admins || []).map(a => `
+        <div class="flex items-center justify-between px-3 py-2 rounded-xl border border-slate-200 text-xs">
+          <div>
+            <span class="font-bold text-[#1E2235]">${escapeHtml(a.id)}</span>
+            <span class="ml-1.5 text-[11px] text-[#5B6AD0] font-semibold">${escapeHtml(a.role || "서브 관리자")}</span>
+          </div>
+          ${a.id !== MAIN_ADMIN.id ? `<button type="button" onclick="deleteSubAdmin('${a.id}')" class="text-rose-500 font-semibold">삭제</button>` : ""}
+        </div>
+      `).join("");
+    }
+
+    async function addSubAdmin(e) {
+      e.preventDefault();
+      const id = document.getElementById("newSubAdminId").value.trim();
+      const pw = document.getElementById("newSubAdminPw").value;
+      if ((appState.admins || []).some(a => a.id === id)) {
+        showToast("이미 존재하는 관리자 아이디입니다.", true);
+        return;
+      }
+      appState.admins.push({ id, email: id, password: pw, name: id, role: "서브 관리자", createdAt: new Date().toISOString() });
+      document.getElementById("newSubAdminId").value = "";
+      document.getElementById("newSubAdminPw").value = "";
+      saveLocalState();
+      renderAdminAccountsList();
+      showToast("서브 관리자가 추가되었습니다.");
+      await pushAllToSheets(false);
+    }
+
+    async function deleteSubAdmin(id) {
+      appState.admins = appState.admins.filter(a => a.id !== id);
+      saveLocalState();
+      renderAdminAccountsList();
+      await pushAllToSheets(false);
+    }
+
+    // ================= 구글 시트 양방향 동기화 =================
+    function openSheetsModal() {
+      openModal("sheetsModal");
+    }
+
+    function copyCodeGs() {
+      const textarea = document.createElement("textarea");
+      textarea.value = CODE_GS_TEMPLATE;
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand("copy");
+        showToast("Code.gs 코드가 복사되었습니다.");
+      } catch (e) {
+        showToast("복사에 실패했습니다.", true);
+      }
+      document.body.removeChild(textarea);
+    }
+
+    async function saveAndTestSheetsUrl() {
+      const url = document.getElementById("sheetsUrlInput").value.trim();
+      if (!url) return;
+      localStorage.setItem(SHEETS_URL_KEY, url);
+      await pullFromSheets(true);
+    }
+
+    async function pullFromSheets(notify = false) {
+      const url = localStorage.getItem(SHEETS_URL_KEY) || DEFAULT_SHEETS_URL;
+      const statusEl = document.getElementById("sheetsStatusText");
+      if (!url) return;
+
+      try {
+        statusEl.textContent = "상태: 구글 시트에서 데이터 불러오는 중...";
+        const res = await fetch(url);
+        const json = await res.json();
+        if (json && json.ok && json.data) {
+          const d = json.data;
+          if (Array.isArray(d.projects) && d.projects.length > 0) appState.projects = d.projects;
+          if (Array.isArray(d.sns)) appState.sns = d.sns;
+          if (Array.isArray(d.bgm)) appState.bgm = d.bgm;
+          if (Array.isArray(d.users)) appState.users = d.users;
+          if (Array.isArray(d.suggestions)) appState.suggestions = d.suggestions;
+          if (d.settings && typeof d.settings === "object") {
+            appState.settings = { ...appState.settings, ...d.settings };
+          }
+          if (Array.isArray(d.admins) && d.admins.length > 0) {
+            const hasMain = d.admins.some(a => a.id === MAIN_ADMIN.id);
+            appState.admins = hasMain ? d.admins : [MAIN_ADMIN, ...d.admins];
+          }
+          saveLocalState();
+          renderAll();
+          statusEl.textContent = "상태: 구글 시트 연결 완료 (실시간 동기화 활성)";
+          if (notify) showToast("구글 시트 데이터를 성공적으로 불러왔습니다.");
+        } else {
+          throw new Error("Invalid response");
+        }
+      } catch (err) {
+        statusEl.textContent = "상태: 연결 확인 필요 (URL 및 모든 사용자 권한 확인)";
+        if (notify) showToast("구글 시트 연결에 실패했습니다. URL과 배포 권한을 확인해 주세요.", true);
+      }
+    }
+
+    async function pushAllToSheets(notify = false) {
+      const url = localStorage.getItem(SHEETS_URL_KEY) || DEFAULT_SHEETS_URL;
+      const statusEl = document.getElementById("sheetsStatusText");
+      if (!url) return;
+
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ data: appState })
+        });
+        const json = await res.json();
+        if (json && json.ok) {
+          statusEl.textContent = "상태: 구글 시트 저장 완료";
+          if (notify) showToast("전체 데이터가 구글 시트에 저장되었습니다.");
+        } else {
+          throw new Error(json.error || "Save error");
+        }
+      } catch (err) {
+        statusEl.textContent = "상태: 시트 저장 실패 (권한 확인 필요)";
+        if (notify) showToast("구글 시트 저장에 실패했습니다. URL과 배포 권한을 확인해 주세요.", true);
+      }
+    }
+
+    // ================= 이미지 리사이저 및 유틸리티 =================
+    function resizeImageFile(file, maxWidth, quality, callback) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let w = img.width;
+          let h = img.height;
+          if (w > maxWidth) {
+            h = Math.round((h * maxWidth) / w);
+            w = maxWidth;
+          }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, w, h);
+          callback(canvas.toDataURL("image/jpeg", quality));
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+  </script>
+</body>
+</html>

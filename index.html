@@ -14,7 +14,7 @@
   <link id="faviconIcon" rel="icon" type="image/png" />
   <link id="webManifestLink" rel="manifest" />
   <script>
-    // 첨부된 STELLIVE.FUN 미니멀 블랙 워드마크 그래픽을 고해상도 인라인 이미지로 즉시 생성
+    /* STELLIVE.FUN 미니멀 블랙 워드마크 그래픽 인라인 생성 */
     const STELLIVE_UPLOADED_PHOTO_PATH = "GEM_PHOTO_9B5AAB2C-3842-4867-B03C-CE7117678DA0_L0_001_recent_photo_F3934B87-2A24-408B-9DF6-FE709E251365.jpg";
 
     const STELLIVE_ORIGINAL_LOGO_SRC = (function buildCrispStelliveWordmarkDataUrl() {
@@ -86,7 +86,7 @@
       }
     })();
 
-    // 홈 화면 추가용 정사각형 아이콘 (IMG_0699.jpeg: 좌상단 STELLIVE, 중앙 행성+별 심볼, 우하단 FUN)
+    /* 기본 홈 화면 추가용 정사각형 행성 아이콘 (IMG_0699.jpeg 디자인 기반) */
     const STELLIVE_SQUARE_ICON_SRC = (function buildSquareIconDataUrl() {
       try {
         const size = 512;
@@ -98,7 +98,6 @@
         ctx.fillStyle = "#FFFFFF";
         ctx.fillRect(0, 0, size, size);
 
-        // 중앙 행성 뒤쪽 고리
         ctx.save();
         ctx.translate(256, 262);
         ctx.rotate(-26 * Math.PI / 180);
@@ -114,7 +113,6 @@
         ctx.stroke();
         ctx.restore();
 
-        // 중앙 행성 본체
         ctx.save();
         ctx.shadowColor = "rgba(130, 148, 238, 0.55)";
         ctx.shadowBlur = 24;
@@ -128,7 +126,6 @@
         ctx.fill();
         ctx.restore();
 
-        // 행성 내부 우측 하단 흰색 유성 컷아웃 및 4각 별빛
         ctx.save();
         ctx.beginPath();
         ctx.arc(256, 262, 92, 0, Math.PI * 2);
@@ -160,7 +157,6 @@
         drawFourPointStar(238, 302, 17, 5);
         ctx.restore();
 
-        // 중앙 행성 앞쪽 고리
         ctx.save();
         ctx.translate(256, 262);
         ctx.rotate(-26 * Math.PI / 180);
@@ -176,14 +172,12 @@
         ctx.stroke();
         ctx.restore();
 
-        // 좌측 상단 STELLIVE
         ctx.fillStyle = "#111319";
         ctx.font = "800 54px 'Pretendard', 'Inter', -apple-system, BlinkMacSystemFont, Arial, sans-serif";
         ctx.textAlign = "left";
         ctx.textBaseline = "top";
         ctx.fillText("STELLIVE", 44, 112);
 
-        // 우측 하단 FUN
         ctx.font = "800 66px 'Pretendard', 'Inter', -apple-system, BlinkMacSystemFont, Arial, sans-serif";
         ctx.textAlign = "right";
         ctx.textBaseline = "bottom";
@@ -195,50 +189,94 @@
       }
     })();
 
+    let currentManifestBlobUrl = "";
+
+    function applyHomeScreenIconAndName(iconHref, appName) {
+      try {
+        const targetHref = (iconHref && String(iconHref).trim() !== "") ? String(iconHref).trim() : STELLIVE_SQUARE_ICON_SRC;
+        const targetName = (appName && String(appName).trim() !== "") ? String(appName).trim() : "STELLIVE.FUN";
+
+        window.__STELLIVE_DEFAULT_APP_ICON__ = targetHref;
+        const appleIcon = document.getElementById("appleTouchIcon");
+        const favIcon = document.getElementById("faviconIcon");
+        if (appleIcon) appleIcon.href = targetHref;
+        if (favIcon) favIcon.href = targetHref;
+
+        document.title = targetName;
+        const appleTitleMeta = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+        const appNameMeta = document.querySelector('meta[name="application-name"]');
+        if (appleTitleMeta) appleTitleMeta.setAttribute("content", targetName);
+        if (appNameMeta) appNameMeta.setAttribute("content", targetName);
+
+        const manifestLink = document.getElementById("webManifestLink");
+        if (manifestLink) {
+          if (currentManifestBlobUrl) {
+            try { URL.revokeObjectURL(currentManifestBlobUrl); } catch (e) {}
+          }
+          const manifestObj = {
+            name: targetName,
+            short_name: targetName,
+            start_url: window.location.href,
+            display: "standalone",
+            background_color: "#FFFFFF",
+            theme_color: "#FFFFFF",
+            icons: [
+              { src: targetHref, sizes: "192x192", type: "image/png" },
+              { src: targetHref, sizes: "512x512", type: "image/png", purpose: "any maskable" }
+            ]
+          };
+          const blob = new Blob([JSON.stringify(manifestObj)], { type: "application/manifest+json" });
+          currentManifestBlobUrl = URL.createObjectURL(blob);
+          manifestLink.href = currentManifestBlobUrl;
+        }
+      } catch (e) {
+        console.warn("Manifest update skipped:", e);
+      }
+    }
+
     (function initStelliveWebManifest() {
       try {
-        function applyHomeScreenIconHref(iconHref) {
-          window.__STELLIVE_DEFAULT_APP_ICON__ = iconHref;
-          const appleIcon = document.getElementById("appleTouchIcon");
-          const favIcon = document.getElementById("faviconIcon");
-          if (appleIcon) appleIcon.href = iconHref;
-          if (favIcon) favIcon.href = iconHref;
-
-          const manifestLink = document.getElementById("webManifestLink");
-          if (manifestLink) {
-            const manifestObj = {
-              name: "STELLIVE.FUN",
-              short_name: "STELLIVE.FUN",
-              start_url: window.location.href,
-              display: "standalone",
-              background_color: "#FFFFFF",
-              theme_color: "#FFFFFF",
-              icons: [
-                { src: iconHref, sizes: "192x192", type: "image/png" },
-                { src: iconHref, sizes: "512x512", type: "image/png", purpose: "any maskable" }
-              ]
-            };
-            const blob = new Blob([JSON.stringify(manifestObj)], { type: "application/manifest+json" });
-            manifestLink.href = URL.createObjectURL(blob);
+        let initialCustomIcon = "";
+        let initialCustomName = "STELLIVE.FUN";
+        try {
+          const savedRaw = localStorage.getItem("stellive_portal_state_v22");
+          if (savedRaw) {
+            const parsed = JSON.parse(savedRaw);
+            if (parsed && parsed.settings) {
+              if (parsed.settings.appIconDataUrl) initialCustomIcon = parsed.settings.appIconDataUrl;
+              if (parsed.settings.appIconName) initialCustomName = parsed.settings.appIconName;
+            }
           }
+        } catch (storageErr) {}
+
+        if (initialCustomIcon) {
+          applyHomeScreenIconAndName(initialCustomIcon, initialCustomName);
+        } else {
+          applyHomeScreenIconAndName(STELLIVE_SQUARE_ICON_SRC, initialCustomName);
+          const uploadedIconImg = new Image();
+          uploadedIconImg.onload = function () {
+            try {
+              const latestSaved = localStorage.getItem("stellive_portal_state_v22");
+              let latestName = initialCustomName;
+              if (latestSaved) {
+                const p = JSON.parse(latestSaved);
+                if (p && p.settings) {
+                  if (p.settings.appIconName) latestName = p.settings.appIconName;
+                  if (p.settings.appIconDataUrl) return;
+                }
+              }
+              const c = document.createElement("canvas");
+              c.width = 512;
+              c.height = 512;
+              const cx = c.getContext("2d");
+              cx.fillStyle = "#FFFFFF";
+              cx.fillRect(0, 0, 512, 512);
+              cx.drawImage(uploadedIconImg, 0, 0, 512, 512);
+              applyHomeScreenIconAndName(c.toDataURL("image/png"), latestName);
+            } catch (err) {}
+          };
+          uploadedIconImg.src = "IMG_0699.jpeg";
         }
-
-        applyHomeScreenIconHref(STELLIVE_SQUARE_ICON_SRC);
-
-        const uploadedIconImg = new Image();
-        uploadedIconImg.onload = function () {
-          try {
-            const c = document.createElement("canvas");
-            c.width = 512;
-            c.height = 512;
-            const cx = c.getContext("2d");
-            cx.fillStyle = "#FFFFFF";
-            cx.fillRect(0, 0, 512, 512);
-            cx.drawImage(uploadedIconImg, 0, 0, 512, 512);
-            applyHomeScreenIconHref(c.toDataURL("image/png"));
-          } catch (err) {}
-        };
-        uploadedIconImg.src = "IMG_0699.jpeg";
       } catch (e) {
         console.warn("Manifest setup skipped:", e);
       }
@@ -334,10 +372,19 @@
   <!-- 1단계: 순수 흰색 배경 입장 공지 화면 ("STELLIVE.FUN 입장하기") -->
   <div id="welcomeIntroOverlay" class="fixed inset-0 bg-white z-50 overflow-y-auto flex flex-col items-center justify-center px-5 py-10 transition-opacity duration-300">
     <div class="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center text-center">
-      <h1 class="text-4xl sm:text-5xl font-black tracking-tight text-[#111319] mb-8">
+      <h1 class="text-4xl sm:text-5xl font-black tracking-tight text-[#111319] mb-6 select-none">
         STELLIVE.FUN
       </h1>
 
+      <!-- STELLIVE.FUN 소개 카드 (관리자 콘솔에서 수정 가능) -->
+      <div class="w-full rounded-2xl bg-indigo-50/60 border border-indigo-100 p-5 sm:p-6 text-left shadow-xs mb-4">
+        <div id="introAboutTitleDisplay" class="text-xs sm:text-sm font-extrabold text-[#5B6AD0] mb-2">
+          [STELLIVE.FUN 소개]
+        </div>
+        <p id="introAboutDescDisplay" class="text-xs sm:text-[13px] text-slate-700 font-medium leading-relaxed whitespace-pre-line">STELLIVE.FUN은 서로 다른 별에 있는 게임들을 이곳으로 모은 장소입니다.</p>
+      </div>
+
+      <!-- 공지 및 유의사항 카드 -->
       <div class="w-full rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] p-5 sm:p-6 text-left shadow-xs mb-8">
         <div class="text-xs sm:text-sm font-extrabold text-[#2563EB] mb-3">
           [공지 및 유의사항]
@@ -358,11 +405,12 @@
         </ul>
       </div>
 
+      <!-- 입장하기 CTA 버튼 -->
       <button
         type="button"
         id="welcomePlayBtn"
-        onclick="startPortalExperience()"
-        class="w-full sm:w-auto min-w-[240px] px-8 py-4 rounded-2xl bg-[#2563EB] hover:bg-[#1D4ED8] active:scale-[0.98] text-white font-extrabold text-sm sm:text-base shadow-lg shadow-blue-500/25 transition-all cursor-pointer">
+        onclick="startPortalExperience(event)"
+        class="relative z-20 w-full sm:w-auto min-w-[240px] px-8 py-4 rounded-2xl bg-[#2563EB] hover:bg-[#1D4ED8] active:scale-[0.98] text-white font-extrabold text-sm sm:text-base shadow-lg shadow-blue-500/25 transition-all cursor-pointer select-none">
         STELLIVE.FUN 입장하기
       </button>
     </div>
@@ -391,6 +439,9 @@
         <span class="loading-dot" style="animation-delay: 0s"></span>
         <span class="loading-dot" style="animation-delay: 0.2s"></span>
         <span class="loading-dot" style="animation-delay: 0.4s"></span>
+      </div>
+      <div id="splashStatusText" class="mt-3 text-xs font-semibold text-slate-400">
+        구글 시트 정보를 불러오는 중입니다...
       </div>
     </div>
   </div>
@@ -466,7 +517,7 @@
             </button>
 
             <!-- 관리자 드롭다운 패널 -->
-            <div id="adminDropdownMenu" class="hidden absolute right-0 mt-2.5 w-72 bg-white rounded-2xl shadow-xl border border-slate-200/90 py-2 z-50">
+            <div id="adminDropdownMenu" class="hidden absolute right-0 mt-2.5 w-72 bg-white rounded-2xl shadow-xl border border-slate-200/90 py-2 z-50 max-h-[82vh] overflow-y-auto custom-scrollbar">
               <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
                 <span id="adminDisplayId" class="font-bold text-sm text-[#1E2235]">dltjdgk0107</span>
                 <span id="adminDisplayRole" class="px-2 py-0.5 rounded-md bg-indigo-50 text-[#5B6AD0] text-[11px] font-bold">메인 관리자</span>
@@ -484,6 +535,13 @@
                   <div>
                     <div class="text-xs font-bold text-[#1E2235]">웹사이트 설명창 수정</div>
                     <div class="text-[11px] text-slate-400">메인 배너 제목 및 안내 문구 설정</div>
+                  </div>
+                </button>
+                <button type="button" onclick="openIntroAboutModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
+                  <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                  <div>
+                    <div class="text-xs font-bold text-[#1E2235]">처음 화면 소개글 설정</div>
+                    <div class="text-[11px] text-slate-400">입장 화면 STELLIVE.FUN 소개 문구 편집</div>
                   </div>
                 </button>
                 <button type="button" onclick="openSnsModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
@@ -505,6 +563,13 @@
                   <div>
                     <div class="text-xs font-bold text-[#1E2235]">로고 이미지 변경</div>
                     <div class="text-[11px] text-slate-400">상단 메인 로고 이미지 파일 업로드</div>
+                  </div>
+                </button>
+                <button type="button" onclick="openAppIconModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
+                  <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                  <div>
+                    <div class="text-xs font-bold text-[#1E2235]">홈 화면 아이콘 및 이름 설정</div>
+                    <div class="text-[11px] text-slate-400">홈 화면 추가 아이콘 이미지 및 앱 이름 지정</div>
                   </div>
                 </button>
                 <button type="button" onclick="openSuggestionsAdminModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
@@ -565,7 +630,7 @@
     <!-- 메인 콘텐츠 -->
     <main class="relative z-10 flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-8">
       <!-- 메인 소개 배너 카드 -->
-      <section class="bg-white/95 backdrop-blur-xs rounded-2xl border border-slate-200/80 shadow-sm p-6 sm:p-8 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <section class="bg-white/95 backdrop-blur-xs rounded-2xl border border-slate-200/80 shadow-sm p-6 sm:p-8 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 id="siteTitleDisplay" class="text-xl sm:text-2xl font-extrabold text-[#1E2235] mb-2">Stellive Fan Web Portal</h1>
           <p id="siteDescDisplay" class="text-sm text-slate-500 leading-relaxed whitespace-pre-line">스텔라이브(Stellive) 팬메이드 웹 게임과 다양한 팬 아트를 한곳에서 즐길 수 있는 공간입니다.
@@ -575,6 +640,35 @@
           <button type="button" id="heroEditDescBtn" onclick="openBannerEditModal()" class="hidden px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition">
             설명창 수정
           </button>
+        </div>
+      </section>
+
+      <!-- 프로젝트 실시간 검색 바 -->
+      <section class="mb-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div class="relative flex-1">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            id="projectSearchInput"
+            type="text"
+            oninput="handleProjectSearch(this.value)"
+            placeholder="프로젝트 제목 또는 설명 검색..."
+            aria-label="프로젝트 검색"
+            class="w-full pl-10 pr-20 py-3 rounded-2xl bg-white/95 backdrop-blur-xs border border-slate-200/90 focus:border-[#5B6AD0] text-xs sm:text-sm font-medium text-[#1E2235] placeholder:text-slate-400 shadow-2xs outline-none transition"
+          />
+          <button
+            type="button"
+            id="projectSearchClearBtn"
+            onclick="clearProjectSearch()"
+            class="hidden absolute right-3 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[11px] font-bold text-slate-600 transition">
+            초기화
+          </button>
+        </div>
+        <div class="flex items-center justify-end shrink-0">
+          <span id="projectSearchCount" class="px-3.5 py-2 rounded-xl bg-white/90 border border-slate-200/80 text-xs font-bold text-slate-600 shadow-2xs">
+            전체 0개
+          </span>
         </div>
       </section>
 
@@ -608,16 +702,16 @@
         <h3 class="text-base font-extrabold text-[#1E2235]">관리자 로그인</h3>
         <button type="button" onclick="closeModal('adminLoginModal')" class="text-slate-400 hover:text-slate-600 text-xs font-semibold">닫기</button>
       </div>
-      <form onsubmit="handleAdminLogin(event)" class="space-y-3.5">
+      <form id="adminLoginForm" onsubmit="return handleAdminLogin(event)" class="space-y-3.5">
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">관리자 아이디</label>
-          <input id="adminLoginId" type="text" required placeholder="아이디 입력" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]" />
+          <input id="adminLoginId" type="text" autocomplete="username" onkeydown="if(event.key==='Enter'){event.preventDefault();handleAdminLogin(event);}" placeholder="아이디 입력" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]" />
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">비밀번호</label>
-          <input id="adminLoginPw" type="password" required placeholder="비밀번호 입력" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]" />
+          <input id="adminLoginPw" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter'){event.preventDefault();handleAdminLogin(event);}" placeholder="비밀번호 입력" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]" />
         </div>
-        <button type="submit" class="w-full py-2.5 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-sm font-bold transition">로그인</button>
+        <button type="button" onclick="handleAdminLogin(event)" class="w-full py-2.5 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-sm font-bold transition cursor-pointer">로그인</button>
       </form>
     </div>
   </div>
@@ -675,6 +769,27 @@
           <textarea id="editSiteDescInput" rows="4" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]"></textarea>
         </div>
         <button type="submit" class="w-full py-2.5 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-sm font-bold transition">설명창 저장</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3-2. 처음 화면 STELLIVE.FUN 소개글 설정 모달 -->
+  <div id="introAboutModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-extrabold text-[#1E2235]">처음 화면 소개글 설정</h3>
+        <button type="button" onclick="closeModal('introAboutModal')" class="text-slate-400 hover:text-slate-600 text-xs font-semibold">닫기</button>
+      </div>
+      <form onsubmit="saveIntroAboutSettings(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">소개 영역 제목</label>
+          <input id="editIntroAboutTitleInput" type="text" required placeholder="예: [STELLIVE.FUN 소개]" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">STELLIVE.FUN 소개 내용</label>
+          <textarea id="editIntroAboutDescInput" rows="5" required placeholder="처음 입장 화면에 표시될 사이트 소개 문구를 입력하세요" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]"></textarea>
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-sm font-bold transition">저장하기</button>
       </form>
     </div>
   </div>
@@ -791,6 +906,39 @@
     </div>
   </div>
 
+  <!-- 6-2. 홈 화면 아이콘 및 이름 설정 모달 -->
+  <div id="appIconModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-extrabold text-[#1E2235]">홈 화면 아이콘 및 이름 설정</h3>
+        <button type="button" onclick="closeModal('appIconModal')" class="text-slate-400 hover:text-slate-600 text-xs font-semibold">닫기</button>
+      </div>
+      <div class="space-y-3.5">
+        <p class="text-[11px] text-slate-500 leading-relaxed">
+          스마트폰 및 태블릿에서 <strong>'홈 화면에 추가'</strong> 시 표시되는 앱 아이콘 이미지와 홈 화면 아이콘 이름을 설정할 수 있습니다.
+        </p>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">홈 화면 아이콘 이름 (앱 이름)</label>
+          <input id="appIconNameInput" type="text" maxlength="24" placeholder="예: STELLIVE.FUN" oninput="updateAppIconPreviewName(this.value)" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#1E2235] outline-none focus:border-[#5B6AD0]" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">아이콘 이미지 파일 선택</label>
+          <input id="appIconFileInput" type="file" accept="image/*" onchange="previewAppIconFile(event)" class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-[#5B6AD0] hover:file:bg-indigo-100 cursor-pointer" />
+        </div>
+        <div class="flex flex-col items-center justify-center py-3.5 rounded-xl bg-[#F4F6FA] border border-slate-200">
+          <div id="appIconPreviewArea" class="w-24 h-24 rounded-[22px] bg-white shadow-md border border-slate-200/80 overflow-hidden flex items-center justify-center">
+            <span class="text-[11px] font-bold text-slate-400">미리보기</span>
+          </div>
+          <span id="appIconPreviewNameText" class="mt-2 text-[11px] font-bold text-[#1E2235] max-w-[140px] truncate">STELLIVE.FUN</span>
+        </div>
+        <div class="flex gap-2 pt-1">
+          <button type="button" onclick="resetAppIconToDefault()" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition">기본값 복원</button>
+          <button type="button" onclick="saveAppIconFile()" class="flex-1 py-2.5 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-xs font-bold shadow-xs transition">저장하기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- 7. 익명 건의사항 남기기 모달 -->
   <div id="suggestionSubmitModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
@@ -875,9 +1023,10 @@
   </div>
 
   <script>
-    // ================= 상수 및 초기 설정 =================
+    /* 상수 및 초기 설정 */
     const DEFAULT_SHEETS_URL = "https://script.google.com/macros/s/AKfycbwQ5YQEU9znLR-1JOdTDqi-GMA-TaN9hDGIrMOk1bb9QzND1nSrhnS97AOfXRf3NDHh6w/exec";
-    const STORAGE_KEY = "stellive_portal_state_v19";
+    const STORAGE_KEY = "stellive_portal_state_v22";
+    const ADMIN_SESSION_KEY = "stellive_portal_admin_session_v22";
 
     const MAIN_ADMIN = {
       id: "dltjdgk0107",
@@ -1060,12 +1209,16 @@ function doPost(e) {
   }
 }`;
 
-    // ================= 애플리케이션 상태 =================
+    /* 애플리케이션 상태 */
     let appState = {
       settings: {
         siteTitle: "Stellive Fan Web Portal",
         siteDesc: "스텔라이브(Stellive) 팬메이드 웹 게임과 다양한 팬 아트를 한곳에서 즐길 수 있는 공간입니다.\n아래 프로젝트를 클릭해 바로 플레이해 보세요!",
-        logoDataUrl: ""
+        introAboutTitle: "[STELLIVE.FUN 소개]",
+        introAboutDesc: "STELLIVE.FUN은 서로 다른 별에 있는 게임들을 이곳으로 모은 장소입니다.",
+        logoDataUrl: "",
+        appIconDataUrl: "",
+        appIconName: "STELLIVE.FUN"
       },
       projects: [],
       sns: [],
@@ -1079,6 +1232,7 @@ function doPost(e) {
     let currentAdmin = null;
     let tempProjectThumb = "";
     let tempLogoDataUrl = "";
+    let tempAppIconDataUrl = "";
     let pendingBgmFile = null;
     let currentBgmIndex = 0;
     let isBgmPlaying = false;
@@ -1087,11 +1241,14 @@ function doPost(e) {
     let hasStartedExperience = false;
     let splashTransitionCompleted = false;
     let audioContextUnlocked = false;
+    let prefetchPromise = null;
+    let currentProjectSearchQuery = "";
 
     function getActiveSheetsUrl() {
       return (activeSheetsUrl || DEFAULT_SHEETS_URL).replace(/^Https:\/\//i, "https://").trim();
     }
 
+    /* 모바일/사파리 오디오 잠금 즉시 해제 */
     function unlockBrowserAudioContext() {
       if (audioContextUnlocked) return;
       try {
@@ -1115,6 +1272,7 @@ function doPost(e) {
       } catch (e) {}
     }
 
+    /* 단일 안전 전환 함수 (스플래시 종료 & 메인 화면 명시적 노출 보장) */
     function finishSplashAndShowMain(dataLoaded = false) {
       if (splashTransitionCompleted) return;
       splashTransitionCompleted = true;
@@ -1155,12 +1313,17 @@ function doPost(e) {
         }, 420);
       }
 
-      if (dataLoaded && appState.bgm && appState.bgm.length > 0) {
+      if ((dataLoaded || (appState.bgm && appState.bgm.length > 0)) && appState.bgm && appState.bgm.length > 0) {
         loadAndPlayTrack(0, true).catch(() => {});
       }
     }
 
-    async function startPortalExperience() {
+    /* 입장 버튼 클릭 -> 한 글자씩 로고 페이드인 + 구글 시트 데이터 로드 완료 후 메인 화면 진입 */
+    async function startPortalExperience(event) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
       unlockBrowserAudioContext();
 
       if (hasStartedExperience) return;
@@ -1169,6 +1332,7 @@ function doPost(e) {
       const welcomeOverlay = document.getElementById("welcomeIntroOverlay");
       const splashOverlay = document.getElementById("logoSplashOverlay");
       const splashLetters = document.querySelectorAll("#splashWordmarkSequence .splash-char, #splashWordmarkSequence .splash-dot");
+      const splashStatusText = document.getElementById("splashStatusText");
 
       if (splashOverlay) {
         splashOverlay.classList.remove("hidden");
@@ -1183,7 +1347,7 @@ function doPost(e) {
             welcomeOverlay.style.display = "none";
             if (welcomeOverlay.parentNode) welcomeOverlay.remove();
           }
-        }, 250);
+        }, 240);
       }
 
       if (splashLetters && splashLetters.length > 0) {
@@ -1194,17 +1358,27 @@ function doPost(e) {
 
       const hardSafetyTimer = setTimeout(() => {
         finishSplashAndShowMain(appState.bgm && appState.bgm.length > 0);
-      }, 3500);
+      }, 9500);
 
       try {
-        const minAnimationWait = new Promise((resolve) => setTimeout(resolve, 1500));
-        const softFetchTimeout = new Promise((resolve) => setTimeout(() => resolve(false), 3000));
+        const minAnimationWait = new Promise((resolve) => setTimeout(resolve, 1450));
+        const softFetchTimeout = new Promise((resolve) => setTimeout(() => resolve(false), 8500));
+
+        const fetchTask = prefetchPromise
+          ? prefetchPromise.then((ok) => (ok ? true : pullFromSheets(false)))
+          : pullFromSheets(false);
+
         const dataLoadTask = Promise.race([
-          pullFromSheets(false).catch(() => false),
+          fetchTask.catch(() => false),
           softFetchTimeout
         ]);
 
         const [dataLoaded] = await Promise.all([dataLoadTask, minAnimationWait]);
+        if (splashStatusText) {
+          splashStatusText.textContent = dataLoaded
+            ? "데이터 로딩 완료! 포털로 입장합니다..."
+            : "로컬 캐시 데이터로 포털에 입장합니다...";
+        }
         clearTimeout(hardSafetyTimer);
         finishSplashAndShowMain(Boolean(dataLoaded));
       } catch (err) {
@@ -1213,6 +1387,7 @@ function doPost(e) {
       }
     }
 
+    /* 안전 다중 저장 엔진 (메모리 + IndexedDB + Google Drive) */
     function openBgmDb() {
       return new Promise((resolve, reject) => {
         try {
@@ -1291,6 +1466,7 @@ function doPost(e) {
       return null;
     }
 
+    /* Google Drive & 외부 음원 다중 폴백 URL 생성기 */
     function extractTrackUrl(track) {
       if (!track || typeof track !== "object") return "";
       const candidates = [track.url, track.URL, track.audioUrl, track.src, track.link, track.Link, track["주소"]];
@@ -1427,7 +1603,8 @@ function doPost(e) {
       }
     }
 
-    function loadViaJsonp(baseUrl, timeoutMs = 9000) {
+    /* 3중 자동 우회 통신 엔진 (Fetch -> JSONP -> AllOrigins 프록시) */
+    function loadViaJsonp(baseUrl, timeoutMs = 9500) {
       return new Promise((resolve, reject) => {
         const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         let randPart = "";
@@ -1528,7 +1705,7 @@ function doPost(e) {
       return await loadViaAllOriginsProxy(cacheBustedUrl);
     }
 
-    // ================= 초기화 =================
+    /* 초기화 */
     function bindWordmarkImageWithFallback(imgEl) {
       if (!imgEl) return;
       imgEl.onerror = function () {
@@ -1558,6 +1735,29 @@ function doPost(e) {
         }
       } catch (e) {}
 
+      /* 메인 관리자 계정 항상 보장 */
+      if (!Array.isArray(appState.admins) || !appState.admins.some(a => a && a.id === MAIN_ADMIN.id)) {
+        appState.admins = [MAIN_ADMIN, ...(Array.isArray(appState.admins) ? appState.admins : [])];
+      }
+
+      /* 세션 유지된 관리자 상태 복원 */
+      try {
+        const savedAdminRaw = sessionStorage.getItem(ADMIN_SESSION_KEY);
+        if (savedAdminRaw) {
+          const parsedAdmin = JSON.parse(savedAdminRaw);
+          if (parsedAdmin && parsedAdmin.id) {
+            currentAdmin = parsedAdmin;
+          }
+        }
+      } catch (e) {}
+
+      /* 입장하기 버튼에 직접 클릭 이벤트 바인딩 보장 */
+      const enterBtn = document.getElementById("welcomePlayBtn");
+      if (enterBtn) {
+        enterBtn.addEventListener("click", startPortalExperience);
+      }
+
+      applyHomeScreenIconAndName(appState.settings.appIconDataUrl, appState.settings.appIconName);
       applyGeneratedLogoToElements();
       setupAudioEvents();
 
@@ -1568,6 +1768,9 @@ function doPost(e) {
       if (codePreview) codePreview.textContent = CODE_GS_TEMPLATE;
 
       renderAll();
+
+      /* 백그라운드에서 미리 구글 시트 데이터 사전 로딩 */
+      prefetchPromise = pullFromSheets(false).catch(() => false);
     });
 
     document.addEventListener("click", (e) => {
@@ -1599,14 +1802,30 @@ function doPost(e) {
       }, 3000);
     }
 
-    // ================= 전체 화면 렌더링 =================
+    /* 전체 화면 렌더링 */
     function renderAll() {
+      renderIntroAbout();
       renderHeaderLogo();
       renderHeaderSns();
       renderBanner();
       renderProjects();
       renderBgmPlayerSelect();
       renderAuthControls();
+    }
+
+    function renderIntroAbout() {
+      const titleEl = document.getElementById("introAboutTitleDisplay");
+      const descEl = document.getElementById("introAboutDescDisplay");
+      if (titleEl) {
+        titleEl.textContent = (appState.settings.introAboutTitle && appState.settings.introAboutTitle.trim() !== "")
+          ? appState.settings.introAboutTitle
+          : "[STELLIVE.FUN 소개]";
+      }
+      if (descEl) {
+        descEl.textContent = (appState.settings.introAboutDesc && appState.settings.introAboutDesc.trim() !== "")
+          ? appState.settings.introAboutDesc
+          : "STELLIVE.FUN은 서로 다른 별에 있는 게임들을 이곳으로 모은 장소입니다.";
+      }
     }
 
     function renderHeaderLogo() {
@@ -1654,6 +1873,7 @@ function doPost(e) {
       }
     }
 
+    /* 프로젝트 URL 정규화 및 안전 이동 헬퍼 */
     function extractProjectUrl(proj) {
       if (!proj || typeof proj !== "object") return "";
       const candidates = [
@@ -1732,17 +1952,69 @@ function doPost(e) {
       return false;
     }
 
+    /* 프로젝트 실시간 검색 핸들러 */
+    function handleProjectSearch(val) {
+      currentProjectSearchQuery = String(val || "");
+      const clearBtn = document.getElementById("projectSearchClearBtn");
+      if (clearBtn) {
+        if (currentProjectSearchQuery.trim() !== "") {
+          clearBtn.classList.remove("hidden");
+        } else {
+          clearBtn.classList.add("hidden");
+        }
+      }
+      renderProjects();
+    }
+
+    function clearProjectSearch() {
+      currentProjectSearchQuery = "";
+      const input = document.getElementById("projectSearchInput");
+      const clearBtn = document.getElementById("projectSearchClearBtn");
+      if (input) input.value = "";
+      if (clearBtn) clearBtn.classList.add("hidden");
+      renderProjects();
+    }
+
     function renderProjects() {
       const grid = document.getElementById("projectsGrid");
+      const countBadge = document.getElementById("projectSearchCount");
       if (!grid) return;
-      const sorted = [...(appState.projects || [])].sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
 
-      if (sorted.length === 0) {
+      const allSorted = [...(appState.projects || [])].sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
+      const keyword = currentProjectSearchQuery.trim().toLowerCase();
+
+      const filtered = keyword
+        ? allSorted.filter(proj => {
+            const titleText = String(proj.title || "").toLowerCase();
+            const descText = String(proj.description || "").toLowerCase();
+            return titleText.includes(keyword) || descText.includes(keyword);
+          })
+        : allSorted;
+
+      if (countBadge) {
+        countBadge.textContent = keyword
+          ? `검색 결과 ${filtered.length}개 / 전체 ${allSorted.length}개`
+          : `전체 ${allSorted.length}개`;
+      }
+
+      if (allSorted.length === 0) {
         grid.innerHTML = `<div class="col-span-full text-center py-16 text-sm text-slate-400 bg-white/90 rounded-2xl border border-slate-200/80">등록된 프로젝트가 없습니다.</div>`;
         return;
       }
 
-      grid.innerHTML = sorted.map(proj => {
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full text-center py-16 text-sm text-slate-400 bg-white/90 rounded-2xl border border-slate-200/80 space-y-3">
+            <div>'${escapeHtml(currentProjectSearchQuery.trim())}'에 일치하는 프로젝트가 없습니다.</div>
+            <button type="button" onclick="clearProjectSearch()" class="px-4 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-xs font-bold text-[#5B6AD0] transition">
+              전체 프로젝트 보기
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(proj => {
         const rawUrl = extractProjectUrl(proj);
         const normalizedUrl = normalizeProjectUrl(rawUrl);
         const displayHref = normalizedUrl || "#";
@@ -1816,7 +2088,7 @@ function doPost(e) {
       }
     }
 
-    // ================= 모달 제어 =================
+    /* 모달 제어 */
     function openModal(id) {
       const menu = document.getElementById("adminDropdownMenu");
       if (menu) menu.classList.add("hidden");
@@ -1834,36 +2106,70 @@ function doPost(e) {
       if (menu) menu.classList.toggle("hidden");
     }
 
-    // ================= 관리자 인증 =================
+    /* 관리자 인증 */
     function openAdminLoginModal() {
+      const idEl = document.getElementById("adminLoginId");
+      const pwEl = document.getElementById("adminLoginPw");
+      if (idEl) idEl.value = "";
+      if (pwEl) pwEl.value = "";
       openModal("adminLoginModal");
+      setTimeout(() => {
+        if (idEl) idEl.focus();
+      }, 60);
     }
 
     function handleAdminLogin(e) {
-      e.preventDefault();
-      const idInput = document.getElementById("adminLoginId").value.trim();
-      const pwInput = document.getElementById("adminLoginPw").value;
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      const idInput = String(document.getElementById("adminLoginId").value || "").trim();
+      const pwInput = String(document.getElementById("adminLoginPw").value || "").trim();
 
-      const found = (appState.admins || []).find(a => (a.id === idInput || a.email === idInput) && a.password === pwInput);
-      if (found) {
-        currentAdmin = found;
+      if (!idInput || !pwInput) {
+        showToast("관리자 아이디와 비밀번호를 입력해 주세요.", true);
+        return false;
+      }
+
+      /* 메인 관리자 계정 최우선 검증 */
+      let authenticatedAdmin = null;
+      if (idInput === MAIN_ADMIN.id && pwInput === MAIN_ADMIN.password) {
+        authenticatedAdmin = MAIN_ADMIN;
+      } else {
+        const list = Array.isArray(appState.admins) ? appState.admins : [];
+        authenticatedAdmin = list.find(a =>
+          a &&
+          (String(a.id || "").trim() === idInput || String(a.email || "").trim() === idInput) &&
+          String(a.password || "").trim() === pwInput
+        ) || null;
+      }
+
+      if (authenticatedAdmin) {
+        currentAdmin = authenticatedAdmin;
+        try {
+          sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(authenticatedAdmin));
+        } catch (err) {}
         closeModal("adminLoginModal");
         renderAll();
-        showToast(`${found.id} 관리자 계정으로 로그인되었습니다.`);
+        showToast(`${authenticatedAdmin.id} 관리자 계정으로 로그인되었습니다.`);
       } else {
         showToast("관리자 아이디 또는 비밀번호가 일치하지 않습니다.", true);
       }
+      return false;
     }
 
     function logoutAdmin() {
       currentAdmin = null;
+      try {
+        sessionStorage.removeItem(ADMIN_SESSION_KEY);
+      } catch (err) {}
       const menu = document.getElementById("adminDropdownMenu");
       if (menu) menu.classList.add("hidden");
       renderAll();
       showToast("관리자 로그아웃되었습니다.");
     }
 
-    // ================= 프로젝트 등록/수정 =================
+    /* 프로젝트 등록/수정 */
     function openProjectModal() {
       document.getElementById("projectModalTitle").textContent = "프로젝트 등록";
       document.getElementById("editProjectId").value = "";
@@ -1962,7 +2268,7 @@ function doPost(e) {
       await pushAllToSheets(false);
     }
 
-    // ================= 웹사이트 설명창 수정 =================
+    /* 웹사이트 설명창 수정 */
     function openBannerEditModal() {
       document.getElementById("editSiteTitleInput").value = appState.settings.siteTitle || "";
       document.getElementById("editSiteDescInput").value = appState.settings.siteDesc || "";
@@ -1980,7 +2286,25 @@ function doPost(e) {
       await pushAllToSheets(false);
     }
 
-    // ================= SNS 링크 관리 =================
+    /* 처음 화면 STELLIVE.FUN 소개글 설정 */
+    function openIntroAboutModal() {
+      document.getElementById("editIntroAboutTitleInput").value = appState.settings.introAboutTitle || "[STELLIVE.FUN 소개]";
+      document.getElementById("editIntroAboutDescInput").value = appState.settings.introAboutDesc || "STELLIVE.FUN은 서로 다른 별에 있는 게임들을 이곳으로 모은 장소입니다.";
+      openModal("introAboutModal");
+    }
+
+    async function saveIntroAboutSettings(e) {
+      e.preventDefault();
+      appState.settings.introAboutTitle = document.getElementById("editIntroAboutTitleInput").value.trim() || "[STELLIVE.FUN 소개]";
+      appState.settings.introAboutDesc = document.getElementById("editIntroAboutDescInput").value.trim();
+      saveLocalState();
+      renderIntroAbout();
+      closeModal("introAboutModal");
+      showToast("처음 화면 소개글이 저장되었습니다.");
+      await pushAllToSheets(false);
+    }
+
+    /* SNS 링크 관리 */
     function openSnsModal() {
       renderSnsModalContent();
       openModal("snsModal");
@@ -2051,7 +2375,7 @@ function doPost(e) {
       await pushAllToSheets(false);
     }
 
-    // ================= BGM 배경음악 관리 =================
+    /* BGM 배경음악 관리 */
     function openBgmModal() {
       pendingBgmFile = null;
       document.getElementById("bgmFileInput").value = "";
@@ -2203,6 +2527,7 @@ function doPost(e) {
       await pushAllToSheets(false);
     }
 
+    /* BGM 다중 폴백 순차 재생 엔진 */
     function renderBgmPlayerSelect() {
       const selDesktop = document.getElementById("bgmTrackSelect");
       const selMobile = document.getElementById("bgmTrackSelectMobile");
@@ -2404,7 +2729,7 @@ function doPost(e) {
       audio.muted = Number(val) === 0;
     }
 
-    // ================= 로고 이미지 파일 업로드 =================
+    /* 로고 이미지 파일 업로드 */
     function openLogoModal() {
       tempLogoDataUrl = appState.settings.logoDataUrl || "";
       document.getElementById("logoFileInput").value = "";
@@ -2442,7 +2767,85 @@ function doPost(e) {
       await pushAllToSheets(false);
     }
 
-    // ================= 익명 건의사항 및 서브 관리자 관리 =================
+    /* 홈 화면 아이콘 및 이름 설정 */
+    function openAppIconModal() {
+      tempAppIconDataUrl = appState.settings.appIconDataUrl || "";
+      const currentName = appState.settings.appIconName || "STELLIVE.FUN";
+      document.getElementById("appIconFileInput").value = "";
+      document.getElementById("appIconNameInput").value = currentName;
+      document.getElementById("appIconPreviewNameText").textContent = currentName;
+
+      const previewSrc = tempAppIconDataUrl || window.__STELLIVE_DEFAULT_APP_ICON__ || STELLIVE_SQUARE_ICON_SRC;
+      document.getElementById("appIconPreviewArea").innerHTML = `<img src="${previewSrc}" alt="App Icon Preview" class="w-full h-full object-cover" />`;
+      openModal("appIconModal");
+    }
+
+    function updateAppIconPreviewName(val) {
+      const display = (val && val.trim() !== "") ? val.trim() : "STELLIVE.FUN";
+      const labelEl = document.getElementById("appIconPreviewNameText");
+      if (labelEl) labelEl.textContent = display;
+    }
+
+    function previewAppIconFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      resizeSquareIconFile(file, 512, (dataUrl) => {
+        tempAppIconDataUrl = dataUrl;
+        document.getElementById("appIconPreviewArea").innerHTML = `<img src="${dataUrl}" alt="App Icon Preview" class="w-full h-full object-cover" />`;
+      });
+    }
+
+    async function saveAppIconFile() {
+      const nameInput = document.getElementById("appIconNameInput");
+      const newName = (nameInput && nameInput.value.trim() !== "") ? nameInput.value.trim() : "STELLIVE.FUN";
+      appState.settings.appIconDataUrl = tempAppIconDataUrl;
+      appState.settings.appIconName = newName;
+      saveLocalState();
+      applyHomeScreenIconAndName(tempAppIconDataUrl, newName);
+      closeModal("appIconModal");
+      showToast("홈 화면 아이콘 및 이름이 저장되었습니다.");
+      await pushAllToSheets(false);
+    }
+
+    async function resetAppIconToDefault() {
+      tempAppIconDataUrl = "";
+      appState.settings.appIconDataUrl = "";
+      appState.settings.appIconName = "STELLIVE.FUN";
+      saveLocalState();
+      applyHomeScreenIconAndName("", "STELLIVE.FUN");
+      closeModal("appIconModal");
+      showToast("기본 행성 아이콘 및 이름으로 복원되었습니다.");
+      await pushAllToSheets(false);
+    }
+
+    function resizeSquareIconFile(file, targetSize, callback) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = targetSize;
+          canvas.height = targetSize;
+          const ctx = canvas.getContext("2d");
+
+          ctx.fillStyle = "#FFFFFF";
+          ctx.fillRect(0, 0, targetSize, targetSize);
+
+          const scale = Math.max(targetSize / img.width, targetSize / img.height);
+          const drawW = img.width * scale;
+          const drawH = img.height * scale;
+          const offsetX = (targetSize - drawW) / 2;
+          const offsetY = (targetSize - drawH) / 2;
+
+          ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+          callback(canvas.toDataURL("image/png"));
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    /* 익명 건의사항 및 서브 관리자 관리 */
     function openSuggestionSubmitModal() {
       openModal("suggestionSubmitModal");
     }
@@ -2539,7 +2942,7 @@ function doPost(e) {
       await pushAllToSheets(false);
     }
 
-    // ================= 구글 시트 양방향 자동 동기화 =================
+    /* 구글 시트 양방향 자동 동기화 */
     function openSheetsModal() {
       openModal("sheetsModal");
     }
@@ -2601,9 +3004,12 @@ function doPost(e) {
             appState.settings = { ...appState.settings, ...d.settings };
           }
           if (Array.isArray(d.admins) && d.admins.length > 0) {
-            const hasMain = d.admins.some(a => a.id === MAIN_ADMIN.id);
+            const hasMain = d.admins.some(a => a && a.id === MAIN_ADMIN.id);
             appState.admins = hasMain ? d.admins : [MAIN_ADMIN, ...d.admins];
+          } else {
+            appState.admins = [MAIN_ADMIN];
           }
+          applyHomeScreenIconAndName(appState.settings.appIconDataUrl, appState.settings.appIconName);
           saveLocalState();
           renderAll();
           if (statusEl) statusEl.textContent = "상태: 구글 시트 연결 완료 (전체 기기 자동 동기화 활성)";
@@ -2648,7 +3054,7 @@ function doPost(e) {
       }
     }
 
-    // ================= 이미지 리사이저 및 유틸리티 =================
+    /* 이미지 리사이저 및 유틸리티 */
     function resizeImageFile(file, maxWidth, quality, callback) {
       const reader = new FileReader();
       reader.onload = (ev) => {

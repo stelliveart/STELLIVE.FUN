@@ -14,139 +14,110 @@
   <link id="faviconIcon" rel="icon" type="image/png" />
   <link id="webManifestLink" rel="manifest" />
   <script>
-    // 첨부된 STELLIVE FUN 로고 이미지를 고해상도 512x512 PNG 아이콘 및 PWA Manifest로 즉시 생성
-    (function initStelliveAppIconAndManifest() {
-      function generateStelliveFunIconDataUrl() {
+    // 첨부된 STELLIVE.FUN 미니멀 블랙 워드마크 그래픽을 고해상도 인라인 이미지(가로형 로고 + 정사각형 아이콘)로 즉시 생성
+    const STELLIVE_UPLOADED_PHOTO_PATH = "GEM_PHOTO_9B5AAB2C-3842-4867-B03C-CE7117678DA0_L0_001_recent_photo_F3934B87-2A24-408B-9DF6-FE709E251365.jpg";
+
+    const STELLIVE_ORIGINAL_LOGO_SRC = (function buildCrispStelliveWordmarkDataUrl() {
+      try {
+        const w = 1400;
+        const h = 220;
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+
+        // 순수 흰색 배경
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(0, 0, w, h);
+
+        // 기하학 볼드 산세리프 "STELLIVE" + 사각 점(".") + "FUN" 정밀 렌더링
+        const textColor = "#111319";
+        const fontSpec = "800 144px 'Pretendard', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif";
+        ctx.font = fontSpec;
+        ctx.fillStyle = textColor;
+        ctx.textBaseline = "middle";
+
+        const leftWord = "STELLIVE";
+        const rightWord = "FUN";
+        const letterSpacing = 12;
+        const dotSize = 23;
+        const dotGapLeft = 14;
+        const dotGapRight = 18;
+
+        function measureSpacedText(text) {
+          let total = 0;
+          for (let i = 0; i < text.length; i++) {
+            total += ctx.measureText(text[i]).width;
+            if (i < text.length - 1) total += letterSpacing;
+          }
+          return total;
+        }
+
+        function drawSpacedText(text, startX, centerY) {
+          let curX = startX;
+          for (let i = 0; i < text.length; i++) {
+            ctx.fillText(text[i], curX, centerY);
+            curX += ctx.measureText(text[i]).width + letterSpacing;
+          }
+          return curX - letterSpacing;
+        }
+
+        const leftWidth = measureSpacedText(leftWord);
+        const rightWidth = measureSpacedText(rightWord);
+        const totalWidth = leftWidth + dotGapLeft + dotSize + dotGapRight + rightWidth;
+
+        const startX = (w - totalWidth) / 2;
+        const centerY = h / 2 + 6;
+
+        const afterLeftX = drawSpacedText(leftWord, startX, centerY);
+
+        // 베이스라인에 맞춘 정사각형 마침표(.)
+        const dotX = afterLeftX + dotGapLeft;
+        const dotY = centerY + 32;
+        ctx.fillRect(dotX, dotY, dotSize, dotSize);
+
+        drawSpacedText(rightWord, dotX + dotSize + dotGapRight, centerY);
+
+        return canvas.toDataURL("image/png");
+      } catch (e) {
+        return "data:image/svg+xml;utf8," + encodeURIComponent(
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 220">' +
+          '<rect width="1400" height="220" fill="#FFFFFF"/>' +
+          '<text x="700" y="152" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="140" letter-spacing="10" fill="#111319">STELLIVE.FUN</text>' +
+          '</svg>'
+        );
+      }
+    })();
+
+    const STELLIVE_SQUARE_ICON_SRC = (function buildSquareIconDataUrl() {
+      try {
         const size = 512;
         const canvas = document.createElement("canvas");
         canvas.width = size;
         canvas.height = size;
         const ctx = canvas.getContext("2d");
-
-        // 1. 순수 흰색 정사각형 배경
         ctx.fillStyle = "#FFFFFF";
         ctx.fillRect(0, 0, size, size);
-
-        const cx = 256;
-        const cy = 264;
-        const r = 104;
-
-        // 2. 행성 뒤쪽 궤도 링 (기울어진 타원)
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(-28 * Math.PI / 180);
-        ctx.shadowColor = "rgba(130, 148, 240, 0.55)";
-        ctx.shadowBlur = 12;
-        ctx.strokeStyle = "rgba(182, 194, 248, 0.9)";
-        ctx.lineWidth = 10;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, 162, 42, 0, Math.PI, Math.PI * 2);
-        ctx.stroke();
-
-        ctx.strokeStyle = "rgba(232, 237, 255, 0.95)";
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, 162, 42, 0, Math.PI, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-
-        // 3. 행성 본체 (글로우 + 라벤더-페리윙클 블루 그라데이션)
-        ctx.save();
-        ctx.shadowColor = "rgba(116, 134, 238, 0.55)";
-        ctx.shadowBlur = 24;
-        const planetGrad = ctx.createLinearGradient(cx - r * 0.7, cy - r * 0.8, cx + r * 0.7, cy + r * 0.9);
-        planetGrad.addColorStop(0, "#7B8BE8");
-        planetGrad.addColorStop(0.55, "#9BA8F4");
-        planetGrad.addColorStop(1, "#C3CCFA");
-        ctx.fillStyle = planetGrad;
-        ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-
-        // 4. 행성 내부 흰색 네 모서리 별 + 우상단 유성 꼬리 스윕
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(cx, cy, r - 6, 0, Math.PI * 2);
-        ctx.clip();
-
-        ctx.fillStyle = "rgba(255, 255, 255, 0.96)";
-        // 우상단으로 뻗는 대각선 스윕
-        ctx.beginPath();
-        ctx.moveTo(cx - 48, cy + 28);
-        ctx.quadraticCurveTo(cx + 12, cy - 12, cx + 68, cy - 68);
-        ctx.lineTo(cx + 115, cy - 15);
-        ctx.lineTo(cx + 35, cy + 95);
-        ctx.lineTo(cx - 58, cy + 52);
-        ctx.closePath();
-        ctx.fill();
-
-        // 메인 네 모서리 별 (좌측 하단부)
-        function drawFourPointStar(sx, sy, outerR, innerR) {
-          ctx.beginPath();
-          for (let i = 0; i < 8; i++) {
-            const angle = (i * Math.PI) / 4;
-            const rad = i % 2 === 0 ? outerR : innerR;
-            const px = sx + Math.cos(angle) * rad;
-            const py = sy + Math.sin(angle) * rad;
-            if (i === 0) ctx.moveTo(px, py);
-            else ctx.lineTo(px, py);
-          }
-          ctx.closePath();
-          ctx.fill();
-        }
-        drawFourPointStar(cx - 44, cy + 24, 34, 11);
-        drawFourPointStar(cx - 22, cy + 48, 17, 6);
-        ctx.restore();
-
-        // 5. 행성 앞쪽을 가로지르는 반투명 궤도 링
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(-28 * Math.PI / 180);
-        ctx.shadowColor = "rgba(130, 148, 240, 0.45)";
-        ctx.shadowBlur = 10;
-        ctx.strokeStyle = "rgba(218, 225, 255, 0.92)";
-        ctx.lineWidth = 10;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, 162, 42, 0, 0, Math.PI);
-        ctx.stroke();
-
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.95)";
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, 162, 42, 0, 0, Math.PI);
-        ctx.stroke();
-        ctx.restore();
-
-        // 6. 좌측 상단 "STELLIVE" 텍스트
-        ctx.save();
-        ctx.fillStyle = "#161822";
-        ctx.font = "900 54px 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-        ctx.textAlign = "left";
-        ctx.textBaseline = "top";
-        ctx.fillText("STELLIVE", 44, 108);
-
-        // 7. 우측 하단 "FUN" 텍스트
-        ctx.font = "900 56px 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-        ctx.textAlign = "right";
-        ctx.textBaseline = "bottom";
-        ctx.fillText("FUN", 456, 408);
-        ctx.restore();
-
+        ctx.fillStyle = "#111319";
+        ctx.font = "900 56px 'Pretendard', 'Inter', Arial, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("STELLIVE.FUN", size / 2, size / 2 + 4);
         return canvas.toDataURL("image/png");
+      } catch (e) {
+        return STELLIVE_ORIGINAL_LOGO_SRC;
       }
+    })();
 
+    (function initStelliveWebManifest() {
       try {
-        const iconDataUrl = generateStelliveFunIconDataUrl();
-        window.__STELLIVE_DEFAULT_APP_ICON__ = iconDataUrl;
-
+        window.__STELLIVE_DEFAULT_APP_ICON__ = STELLIVE_SQUARE_ICON_SRC;
         const appleIcon = document.getElementById("appleTouchIcon");
         const favIcon = document.getElementById("faviconIcon");
+        if (appleIcon) appleIcon.href = STELLIVE_SQUARE_ICON_SRC;
+        if (favIcon) favIcon.href = STELLIVE_SQUARE_ICON_SRC;
+
         const manifestLink = document.getElementById("webManifestLink");
-
-        if (appleIcon) appleIcon.href = iconDataUrl;
-        if (favIcon) favIcon.href = iconDataUrl;
-
         if (manifestLink) {
           const manifestObj = {
             name: "STELLIVE.FUN",
@@ -156,15 +127,15 @@
             background_color: "#FFFFFF",
             theme_color: "#FFFFFF",
             icons: [
-              { src: iconDataUrl, sizes: "192x192", type: "image/png" },
-              { src: iconDataUrl, sizes: "512x512", type: "image/png", purpose: "any maskable" }
+              { src: STELLIVE_SQUARE_ICON_SRC, sizes: "192x192", type: "image/png" },
+              { src: STELLIVE_SQUARE_ICON_SRC, sizes: "512x512", type: "image/png", purpose: "any maskable" }
             ]
           };
           const blob = new Blob([JSON.stringify(manifestObj)], { type: "application/manifest+json" });
           manifestLink.href = URL.createObjectURL(blob);
         }
       } catch (e) {
-        console.warn("App icon/manifest setup skipped:", e);
+        console.warn("Manifest setup skipped:", e);
       }
     })();
   </script>
@@ -199,15 +170,70 @@
       border: 2.5px solid #5B6AD0;
       cursor: pointer;
     }
+    /* 원본 로고 선명도 유지 */
+    .stellive-crisp-logo {
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: high-quality;
+    }
+    /* 스플래시 로고 한 글자씩 순차 페이드인 + 위로 부드러운 상승 애니메이션 */
+    @keyframes letterFadeUp {
+      0% {
+        opacity: 0;
+        transform: translateY(14px) scale(0.92);
+        filter: blur(4px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+      }
+    }
+    .splash-char {
+      display: inline-block;
+      opacity: 0;
+      font-family: 'Pretendard', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      font-weight: 900;
+      color: #111319;
+      line-height: 1;
+      will-change: transform, opacity, filter;
+    }
+    .splash-char.play {
+      animation: letterFadeUp 0.52s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    .splash-dot {
+      display: inline-block;
+      opacity: 0;
+      width: 0.14em;
+      height: 0.14em;
+      background-color: #111319;
+      margin: 0 0.08em;
+      vertical-align: baseline;
+      will-change: transform, opacity, filter;
+    }
+    .splash-dot.play {
+      animation: letterFadeUp 0.52s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    /* 스플래시 하단 로딩 인디케이터 점 */
+    @keyframes pulseDot {
+      0%, 80%, 100% { opacity: 0.25; transform: scale(0.85); }
+      40% { opacity: 1; transform: scale(1.1); }
+    }
+    .loading-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 9999px;
+      background-color: #5B6AD0;
+      animation: pulseDot 1.2s infinite ease-in-out both;
+    }
   </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between pb-16 md:pb-0">
+<body class="min-h-screen bg-[#F4F6FA] relative overflow-x-hidden">
 
-  <!-- 순수 흰색 배경 입장 인트로 오버레이 ("STELLIVE.FUN 입장하기") -->
+  <!-- 1단계: 순수 흰색 배경 입장 공지 화면 ("STELLIVE.FUN 입장하기") -->
   <div id="welcomeIntroOverlay" class="fixed inset-0 bg-white z-50 overflow-y-auto flex flex-col items-center justify-center px-5 py-10 transition-opacity duration-300">
     <div class="relative z-10 w-full max-w-lg mx-auto flex flex-col items-center text-center">
       <!-- 메인 브랜드 타이틀 -->
-      <h1 class="text-4xl sm:text-5xl font-black tracking-tight text-[#1E2235] mb-8">
+      <h1 class="text-4xl sm:text-5xl font-black tracking-tight text-[#111319] mb-8">
         STELLIVE.FUN
       </h1>
 
@@ -233,203 +259,250 @@
       </div>
 
       <!-- STELLIVE.FUN 입장하기 버튼 -->
-      <button type="button" id="welcomePlayBtn" onclick="startPortalExperience()"
-              class="w-full max-w-[260px] py-3.5 px-6 rounded-2xl bg-[#2563EB] hover:bg-[#1D4ED8] active:scale-[0.98] text-white text-sm sm:text-base font-extrabold tracking-tight shadow-[0_10px_25px_rgba(37,99,235,0.25)] cursor-pointer transition">
+      <button
+        type="button"
+        id="welcomePlayBtn"
+        onclick="startPortalExperience()"
+        class="w-full sm:w-auto min-w-[240px] px-8 py-4 rounded-2xl bg-[#2563EB] hover:bg-[#1D4ED8] active:scale-[0.98] text-white font-extrabold text-sm sm:text-base shadow-lg shadow-blue-500/25 transition-all cursor-pointer">
         STELLIVE.FUN 입장하기
       </button>
     </div>
   </div>
 
-  <!-- 상단 헤더 -->
-  <header class="w-full bg-white border-b border-slate-200/80 sticky top-0 z-30">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
-      <!-- 좌측: STELLIVE 로고 + 등록된 SNS 링크 버튼 -->
-      <div class="flex items-center gap-3.5 min-w-0">
-        <a href="#" onclick="location.reload(); return false;" class="flex items-center gap-2.5 shrink-0">
-          <div id="headerLogoContainer" class="flex items-center gap-2">
-            <svg class="w-6 h-6 text-[#5B6AD0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-            </svg>
-            <span class="font-extrabold text-lg tracking-tight text-[#1E2235]">STELLIVE</span>
-          </div>
-        </a>
-        <div id="headerSnsList" class="flex items-center gap-2 overflow-x-auto custom-scrollbar py-1"></div>
+  <!-- 2단계: 입장하기 클릭 후 STELLIVE.FUN 한 글자씩 순차 페이드인 + 데이터 로딩 완료 대기 스플래시 화면 -->
+  <div id="logoSplashOverlay" class="hidden fixed inset-0 bg-white z-40 flex flex-col items-center justify-center p-6 transition-opacity duration-500">
+    <div id="logoSplashInner" class="flex flex-col items-center justify-center w-full max-w-2xl select-none">
+      <div id="splashWordmarkSequence" aria-label="STELLIVE.FUN"
+           class="flex items-baseline justify-center tracking-[0.06em] text-4xl sm:text-6xl md:text-7xl">
+        <span class="splash-char" style="animation-delay: 0.04s">S</span>
+        <span class="splash-char" style="animation-delay: 0.11s">T</span>
+        <span class="splash-char" style="animation-delay: 0.18s">E</span>
+        <span class="splash-char" style="animation-delay: 0.25s">L</span>
+        <span class="splash-char" style="animation-delay: 0.32s">L</span>
+        <span class="splash-char" style="animation-delay: 0.39s">I</span>
+        <span class="splash-char" style="animation-delay: 0.46s">V</span>
+        <span class="splash-char" style="animation-delay: 0.53s">E</span>
+        <span class="splash-dot" style="animation-delay: 0.60s"></span>
+        <span class="splash-char" style="animation-delay: 0.67s">F</span>
+        <span class="splash-char" style="animation-delay: 0.74s">U</span>
+        <span class="splash-char" style="animation-delay: 0.81s">N</span>
       </div>
 
-      <!-- 우측: 캡슐형 BGM 플레이어 + 익명 건의사항 남기기 + 관리자 로그인/콘솔 -->
-      <div class="flex items-center gap-2.5 shrink-0">
-        <!-- 데스크톱 캡슐형 BGM 플레이어 -->
-        <div class="hidden md:flex items-center gap-2 bg-[#F4F6FA] border border-slate-200/90 rounded-full px-3 py-1.5">
-          <button type="button" onclick="prevBgmTrack()" title="이전 곡" class="p-1 text-slate-500 hover:text-[#1E2235] transition">
-            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
-          </button>
-          <button type="button" id="bgmPlayBtn" onclick="toggleBgmPlay()" title="재생/일시정지" class="w-7 h-7 rounded-full bg-[#5B6AD0] hover:bg-[#4A58B8] text-white flex items-center justify-center transition shadow-sm">
-            <svg id="bgmPlayIcon" class="w-3.5 h-3.5 ml-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-          </button>
-          <select id="bgmTrackSelect" onchange="selectBgmTrackByIndex(this.value)" aria-label="BGM 선택" class="bg-transparent text-xs font-semibold text-[#1E2235] max-w-[140px] truncate outline-none cursor-pointer">
-            <option value="">BGM 불러오는 중...</option>
-          </select>
-          <button type="button" onclick="nextBgmTrack()" title="다음 곡" class="p-1 text-slate-500 hover:text-[#1E2235] transition">
-            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
-          </button>
-          <button type="button" onclick="toggleBgmMute()" title="음소거" class="p-1 text-slate-500 hover:text-[#1E2235] transition">
-            <svg id="bgmVolIcon" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
-            </svg>
-          </button>
-          <input id="bgmVolumeSlider" type="range" min="0" max="1" step="0.05" value="0.5" oninput="changeBgmVolume(this.value)" aria-label="볼륨 조절" class="w-14" />
-        </div>
-
-        <!-- 익명 건의사항 남기기 버튼 -->
-        <button type="button" onclick="openSuggestionSubmitModal()" class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition">
-          건의사항 남기기
-        </button>
-
-        <!-- 관리자 로그인 / 콘솔 드롭다운 -->
-        <div class="relative" id="adminDropdownWrapper">
-          <button type="button" id="adminLoginBtn" onclick="openAdminLoginModal()" class="px-4 py-2 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-xs font-semibold transition shadow-sm">
-            관리자 로그인
-          </button>
-          <button type="button" id="adminConsoleBtn" onclick="toggleAdminMenu()" class="hidden px-4 py-2 rounded-xl bg-[#1E2235] hover:bg-[#2A2F4A] text-white text-xs font-semibold transition flex items-center gap-2 shadow-sm">
-            <span>관리자 콘솔</span>
-            <svg class="w-3.5 h-3.5 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
-          </button>
-
-          <!-- 관리자 드롭다운 패널 -->
-          <div id="adminDropdownMenu" class="hidden absolute right-0 mt-2.5 w-72 bg-white rounded-2xl shadow-xl border border-slate-200/90 py-2 z-50">
-            <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-              <span id="adminDisplayId" class="font-bold text-sm text-[#1E2235]">dltjdgk0107</span>
-              <span id="adminDisplayRole" class="px-2 py-0.5 rounded-md bg-indigo-50 text-[#5B6AD0] text-[11px] font-bold">메인 관리자</span>
-            </div>
-            <div class="py-1.5">
-              <button type="button" onclick="openProjectModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
-                <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-                <div>
-                  <div class="text-xs font-bold text-[#1E2235]">프로젝트 등록</div>
-                  <div class="text-[11px] text-slate-400">새 웹 게임 및 프로젝트 추가</div>
-                </div>
-              </button>
-              <button type="button" onclick="openBannerEditModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
-                <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                <div>
-                  <div class="text-xs font-bold text-[#1E2235]">웹사이트 설명창 수정</div>
-                  <div class="text-[11px] text-slate-400">메인 배너 제목 및 안내 문구 설정</div>
-                </div>
-              </button>
-              <button type="button" onclick="openSnsModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
-                <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                <div>
-                  <div class="text-xs font-bold text-[#1E2235]">SNS 링크 관리</div>
-                  <div class="text-[11px] text-slate-400">로고 옆 SNS 플랫폼 및 계정 버튼 설정</div>
-                </div>
-              </button>
-              <button type="button" onclick="openBgmModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
-                <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-                <div>
-                  <div class="text-xs font-bold text-[#1E2235]">BGM 배경음악 설정</div>
-                  <div class="text-[11px] text-slate-400">MP3/MP4 파일 등록 및 재생 번호 순서 지정</div>
-                </div>
-              </button>
-              <button type="button" onclick="openLogoModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
-                <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                <div>
-                  <div class="text-xs font-bold text-[#1E2235]">로고 이미지 변경</div>
-                  <div class="text-[11px] text-slate-400">상단 메인 로고 이미지 파일 업로드</div>
-                </div>
-              </button>
-              <button type="button" onclick="openSuggestionsAdminModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
-                <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                <div>
-                  <div class="text-xs font-bold text-[#1E2235]">익명 건의사항 관리</div>
-                  <div class="text-[11px] text-slate-400">방문자 의견 조회 및 삭제</div>
-                </div>
-              </button>
-              <button type="button" onclick="openAdminsModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
-                <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                <div>
-                  <div class="text-xs font-bold text-[#1E2235]">관리자 계정 관리</div>
-                  <div class="text-[11px] text-slate-400">서브 관리자 생성 및 삭제</div>
-                </div>
-              </button>
-              <button type="button" onclick="openSheetsModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
-                <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-                <div>
-                  <div class="text-xs font-bold text-[#1E2235]">구글 시트 DB 연동</div>
-                  <div class="text-[11px] text-slate-400">Apps Script URL 및 실시간 동기화</div>
-                </div>
-              </button>
-            </div>
-            <div class="border-t border-slate-100 pt-1.5">
-              <button type="button" onclick="logoutAdmin()" class="w-full px-4 py-2.5 hover:bg-rose-50 flex items-start gap-3 text-left transition">
-                <svg class="w-4 h-4 text-rose-500 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                <div>
-                  <div class="text-xs font-bold text-rose-600">로그아웃</div>
-                  <div class="text-[11px] text-rose-400">관리자 세션 종료</div>
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
+      <!-- 은은한 로딩 인디케이터 점 -->
+      <div class="mt-8 flex items-center gap-2 opacity-80" aria-label="로딩 중">
+        <span class="loading-dot" style="animation-delay: 0s"></span>
+        <span class="loading-dot" style="animation-delay: 0.2s"></span>
+        <span class="loading-dot" style="animation-delay: 0.4s"></span>
       </div>
-    </div>
-  </header>
-
-  <!-- 모바일 / 태블릿 하단 고정 BGM 바 -->
-  <div class="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 px-4 py-2.5 flex items-center justify-between gap-2 z-30">
-    <div class="flex items-center gap-2 min-w-0 flex-1">
-      <button type="button" onclick="prevBgmTrack()" title="이전 곡" class="p-1.5 text-slate-500 hover:text-[#1E2235]">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
-      </button>
-      <button type="button" onclick="toggleBgmPlay()" title="재생/일시정지" class="w-8 h-8 rounded-full bg-[#5B6AD0] text-white flex items-center justify-center shrink-0">
-        <svg id="bgmPlayIconMobile" class="w-3.5 h-3.5 ml-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-      </button>
-      <select id="bgmTrackSelectMobile" onchange="selectBgmTrackByIndex(this.value)" aria-label="모바일 BGM 선택" class="bg-[#F4F6FA] rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#1E2235] flex-1 min-w-0 truncate outline-none">
-        <option value="">BGM 불러오는 중...</option>
-      </select>
-      <button type="button" onclick="nextBgmTrack()" title="다음 곡" class="p-1.5 text-slate-500 hover:text-[#1E2235]">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
-      </button>
     </div>
   </div>
 
-  <!-- 메인 콘텐츠 -->
-  <main class="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-8">
-    <!-- 메인 소개 배너 카드 -->
-    <section class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 sm:p-8 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div>
-        <h1 id="siteTitleDisplay" class="text-xl sm:text-2xl font-extrabold text-[#1E2235] mb-2">Stellive Fan Web Portal</h1>
-        <p id="siteDescDisplay" class="text-sm text-slate-500 leading-relaxed whitespace-pre-line">스텔라이브(Stellive) 팬메이드 웹 게임과 다양한 팬 아트를 한곳에서 즐길 수 있는 공간입니다.
-아래 프로젝트를 클릭해 바로 플레이해 보세요!</p>
+  <!-- 3단계: 명시적 메인 포털 래퍼 (#portalMainWrapper - 스플래시 종료 시 opacity-100으로 부드럽게 전환) -->
+  <div id="portalMainWrapper" class="min-h-screen flex flex-col justify-between pb-16 md:pb-0 relative opacity-0 pointer-events-none transition-opacity duration-500">
+
+    <!-- 메인 포털 화면 정중앙 은은한 고정 배경 워터마크 -->
+    <div aria-hidden="true" class="fixed inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden select-none px-6">
+      <img
+        id="bgWatermarkImg"
+        alt=""
+        class="stellive-crisp-logo w-[320px] sm:w-[460px] md:w-[580px] h-auto object-contain opacity-[0.045] mix-blend-multiply border-0"
+      />
+    </div>
+
+    <!-- 상단 헤더 -->
+    <header class="w-full bg-white/95 backdrop-blur-xs border-b border-slate-200/80 sticky top-0 z-30">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+        <!-- 좌측: STELLIVE.FUN 로고 + 등록된 SNS 링크 버튼 -->
+        <div class="flex items-center gap-3.5 min-w-0">
+          <a href="#" onclick="location.reload(); return false;" class="flex items-center gap-2.5 shrink-0">
+            <div id="headerLogoContainer" class="flex items-center">
+              <img
+                id="headerDefaultLogoImg"
+                alt="STELLIVE.FUN"
+                class="stellive-crisp-logo h-6 sm:h-7 w-auto object-contain border-0 mix-blend-multiply"
+              />
+            </div>
+          </a>
+          <div id="headerSnsList" class="flex items-center gap-2 overflow-x-auto custom-scrollbar py-1"></div>
+        </div>
+
+        <!-- 우측: 캡슐형 BGM 플레이어 + 익명 건의사항 남기기 + 관리자 로그인/콘솔 -->
+        <div class="flex items-center gap-2.5 shrink-0">
+          <!-- 데스크톱 캡슐형 BGM 플레이어 -->
+          <div class="hidden md:flex items-center gap-2 bg-[#F4F6FA] border border-slate-200/90 rounded-full px-3 py-1.5">
+            <button type="button" onclick="prevBgmTrack()" title="이전 곡" class="p-1 text-slate-500 hover:text-[#1E2235] transition">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+            </button>
+            <button type="button" id="bgmPlayBtn" onclick="toggleBgmPlay()" title="재생/일시정지" class="w-7 h-7 rounded-full bg-[#5B6AD0] hover:bg-[#4A58B8] text-white flex items-center justify-center transition shadow-sm">
+              <svg id="bgmPlayIcon" class="w-3.5 h-3.5 ml-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <select id="bgmTrackSelect" onchange="selectBgmTrackByIndex(this.value)" aria-label="BGM 선택" class="bg-transparent text-xs font-semibold text-[#1E2235] max-w-[140px] truncate outline-none cursor-pointer">
+              <option value="">BGM 불러오는 중...</option>
+            </select>
+            <button type="button" onclick="nextBgmTrack()" title="다음 곡" class="p-1 text-slate-500 hover:text-[#1E2235] transition">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+            </button>
+            <button type="button" onclick="toggleBgmMute()" title="음소거" class="p-1 text-slate-500 hover:text-[#1E2235] transition">
+              <svg id="bgmVolIcon" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+              </svg>
+            </button>
+            <input id="bgmVolumeSlider" type="range" min="0" max="1" step="0.05" value="0.5" oninput="changeBgmVolume(this.value)" aria-label="볼륨 조절" class="w-14" />
+          </div>
+
+          <!-- 익명 건의사항 남기기 버튼 -->
+          <button type="button" onclick="openSuggestionSubmitModal()" class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition">
+            건의사항 남기기
+          </button>
+
+          <!-- 관리자 로그인 / 콘솔 드롭다운 -->
+          <div class="relative" id="adminDropdownWrapper">
+            <button type="button" id="adminLoginBtn" onclick="openAdminLoginModal()" class="px-4 py-2 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-xs font-semibold transition shadow-sm">
+              관리자 로그인
+            </button>
+            <button type="button" id="adminConsoleBtn" onclick="toggleAdminMenu()" class="hidden px-4 py-2 rounded-xl bg-[#1E2235] hover:bg-[#2A2F4A] text-white text-xs font-semibold transition flex items-center gap-2 shadow-sm">
+              <span>관리자 콘솔</span>
+              <svg class="w-3.5 h-3.5 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+
+            <!-- 관리자 드롭다운 패널 -->
+            <div id="adminDropdownMenu" class="hidden absolute right-0 mt-2.5 w-72 bg-white rounded-2xl shadow-xl border border-slate-200/90 py-2 z-50">
+              <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                <span id="adminDisplayId" class="font-bold text-sm text-[#1E2235]">dltjdgk0107</span>
+                <span id="adminDisplayRole" class="px-2 py-0.5 rounded-md bg-indigo-50 text-[#5B6AD0] text-[11px] font-bold">메인 관리자</span>
+              </div>
+              <div class="py-1.5">
+                <button type="button" onclick="openProjectModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
+                  <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                  <div>
+                    <div class="text-xs font-bold text-[#1E2235]">프로젝트 등록</div>
+                    <div class="text-[11px] text-slate-400">새 웹 게임 및 프로젝트 추가</div>
+                  </div>
+                </button>
+                <button type="button" onclick="openBannerEditModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
+                  <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  <div>
+                    <div class="text-xs font-bold text-[#1E2235]">웹사이트 설명창 수정</div>
+                    <div class="text-[11px] text-slate-400">메인 배너 제목 및 안내 문구 설정</div>
+                  </div>
+                </button>
+                <button type="button" onclick="openSnsModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
+                  <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                  <div>
+                    <div class="text-xs font-bold text-[#1E2235]">SNS 링크 관리</div>
+                    <div class="text-[11px] text-slate-400">로고 옆 SNS 플랫폼 및 계정 버튼 설정</div>
+                  </div>
+                </button>
+                <button type="button" onclick="openBgmModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
+                  <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                  <div>
+                    <div class="text-xs font-bold text-[#1E2235]">BGM 배경음악 설정</div>
+                    <div class="text-[11px] text-slate-400">MP3/MP4 파일 등록 및 재생 번호 순서 지정</div>
+                  </div>
+                </button>
+                <button type="button" onclick="openLogoModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
+                  <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  <div>
+                    <div class="text-xs font-bold text-[#1E2235]">로고 이미지 변경</div>
+                    <div class="text-[11px] text-slate-400">상단 메인 로고 이미지 파일 업로드</div>
+                  </div>
+                </button>
+                <button type="button" onclick="openSuggestionsAdminModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
+                  <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  <div>
+                    <div class="text-xs font-bold text-[#1E2235]">익명 건의사항 관리</div>
+                    <div class="text-[11px] text-slate-400">방문자 의견 조회 및 삭제</div>
+                  </div>
+                </button>
+                <button type="button" onclick="openAdminsModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
+                  <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  <div>
+                    <div class="text-xs font-bold text-[#1E2235]">관리자 계정 관리</div>
+                    <div class="text-[11px] text-slate-400">서브 관리자 생성 및 삭제</div>
+                  </div>
+                </button>
+                <button type="button" onclick="openSheetsModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
+                  <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                  <div>
+                    <div class="text-xs font-bold text-[#1E2235]">구글 시트 DB 연동</div>
+                    <div class="text-[11px] text-slate-400">Apps Script URL 및 실시간 동기화</div>
+                  </div>
+                </button>
+              </div>
+              <div class="border-t border-slate-100 pt-1.5">
+                <button type="button" onclick="logoutAdmin()" class="w-full px-4 py-2.5 hover:bg-rose-50 flex items-start gap-3 text-left transition">
+                  <svg class="w-4 h-4 text-rose-500 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                  <div>
+                    <div class="text-xs font-bold text-rose-600">로그아웃</div>
+                    <div class="text-[11px] text-rose-400">관리자 세션 종료</div>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="flex items-center gap-2 shrink-0">
-        <button type="button" id="heroEditDescBtn" onclick="openBannerEditModal()" class="hidden px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition">
-          설명창 수정
+    </header>
+
+    <!-- 모바일 / 태블릿 하단 고정 BGM 바 -->
+    <div class="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 px-4 py-2.5 flex items-center justify-between gap-2 z-30">
+      <div class="flex items-center gap-2 min-w-0 flex-1">
+        <button type="button" onclick="prevBgmTrack()" title="이전 곡" class="p-1.5 text-slate-500 hover:text-[#1E2235]">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+        </button>
+        <button type="button" onclick="toggleBgmPlay()" title="재생/일시정지" class="w-8 h-8 rounded-full bg-[#5B6AD0] text-white flex items-center justify-center shrink-0">
+          <svg id="bgmPlayIconMobile" class="w-3.5 h-3.5 ml-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <select id="bgmTrackSelectMobile" onchange="selectBgmTrackByIndex(this.value)" aria-label="모바일 BGM 선택" class="bg-[#F4F6FA] rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#1E2235] flex-1 min-w-0 truncate outline-none">
+          <option value="">BGM 불러오는 중...</option>
+        </select>
+        <button type="button" onclick="nextBgmTrack()" title="다음 곡" class="p-1.5 text-slate-500 hover:text-[#1E2235]">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
         </button>
       </div>
-    </section>
+    </div>
 
-    <!-- 프로젝트 카드 그리드 -->
-    <section id="projectsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div class="col-span-full text-center py-16 text-sm text-slate-400 bg-white rounded-2xl border border-slate-200/80">
-        구글 시트에서 최신 프로젝트 정보를 불러오는 중입니다...
-      </div>
-    </section>
-  </main>
+    <!-- 메인 콘텐츠 (워터마크 위에 선명하게 표시되도록 relative z-10 설정) -->
+    <main class="relative z-10 flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-8">
+      <!-- 메인 소개 배너 카드 -->
+      <section class="bg-white/95 backdrop-blur-xs rounded-2xl border border-slate-200/80 shadow-sm p-6 sm:p-8 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 id="siteTitleDisplay" class="text-xl sm:text-2xl font-extrabold text-[#1E2235] mb-2">Stellive Fan Web Portal</h1>
+          <p id="siteDescDisplay" class="text-sm text-slate-500 leading-relaxed whitespace-pre-line">스텔라이브(Stellive) 팬메이드 웹 게임과 다양한 팬 아트를 한곳에서 즐길 수 있는 공간입니다.
+아래 프로젝트를 클릭해 바로 플레이해 보세요!</p>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button type="button" id="heroEditDescBtn" onclick="openBannerEditModal()" class="hidden px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition">
+            설명창 수정
+          </button>
+        </div>
+      </section>
 
-  <!-- 하단 푸터 -->
-  <footer class="w-full py-8 text-center text-xs text-slate-400">
-    © 2026 Stellive Digital Playground. All rights reserved.
-  </footer>
+      <!-- 프로젝트 카드 그리드 -->
+      <section id="projectsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="col-span-full text-center py-16 text-sm text-slate-400 bg-white/90 rounded-2xl border border-slate-200/80">
+          구글 시트에서 최신 프로젝트 정보를 불러오는 중입니다...
+        </div>
+      </section>
+    </main>
 
-  <!-- MP3 / MP4 / 외부 스트리밍 오디오 재생용 미디어 요소 (CORS 차단 방지 위해 crossorigin 미지정) -->
+    <!-- 하단 푸터 -->
+    <footer class="relative z-10 w-full py-8 text-center text-xs text-slate-400">
+      © 2026 Stellive Digital Playground. All rights reserved.
+    </footer>
+
+  </div>
+  <!-- /#portalMainWrapper -->
+
+  <!-- MP3 / MP4 / 외부 스트리밍 오디오 재생용 미디어 요소 -->
   <video id="bgmMediaPlayer" preload="auto" playsinline class="hidden"></video>
 
   <!-- 우측 하단 토스트 알림 -->
   <div id="toastContainer" class="fixed bottom-16 md:bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-  <!-- ================= 모달 모음 ================= -->
+  <!-- ================= 모달 모음 (10개 전체) ================= -->
 
   <!-- 1. 관리자 로그인 모달 -->
   <div id="adminLoginModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
@@ -707,7 +780,7 @@
   <script>
     // ================= 상수 및 초기 설정 =================
     const DEFAULT_SHEETS_URL = "https://script.google.com/macros/s/AKfycbwQ5YQEU9znLR-1JOdTDqi-GMA-TaN9hDGIrMOk1bb9QzND1nSrhnS97AOfXRf3NDHh6w/exec";
-    const STORAGE_KEY = "stellive_portal_state_v17";
+    const STORAGE_KEY = "stellive_portal_state_v19";
 
     const MAIN_ADMIN = {
       id: "dltjdgk0107",
@@ -915,6 +988,7 @@ function doPost(e) {
     let bgmObjectUrlCache = {};
     let memoryBgmFiles = {};
     let hasStartedExperience = false;
+    let splashTransitionCompleted = false;
     let audioContextUnlocked = false;
 
     function getActiveSheetsUrl() {
@@ -945,28 +1019,112 @@ function doPost(e) {
       } catch (e) {}
     }
 
-    // ================= 입장 버튼 클릭 즉시 진입 + 구글 시트 동기화 + BGM 자동 시작 =================
-    function startPortalExperience() {
-      unlockBrowserAudioContext();
+    // ================= 단일 안전 전환 함수 (스플래시 종료 & 메인 화면 명시적 노출 보장) =================
+    function finishSplashAndShowMain(dataLoaded = false) {
+      if (splashTransitionCompleted) return;
+      splashTransitionCompleted = true;
 
-      const overlay = document.getElementById("welcomeIntroOverlay");
-      if (overlay) {
-        overlay.style.opacity = "0";
-        overlay.style.pointerEvents = "none";
-        setTimeout(() => {
-          overlay.remove();
-        }, 250);
+      try {
+        renderAll();
+      } catch (renderErr) {
+        console.warn("Render fallback:", renderErr);
       }
+
+      const mainWrapper = document.getElementById("portalMainWrapper");
+      const splashOverlay = document.getElementById("logoSplashOverlay");
+      const welcomeOverlay = document.getElementById("welcomeIntroOverlay");
+
+      // 혹시 남아있는 1단계 입장 화면이 있다면 확실히 제거
+      if (welcomeOverlay) {
+        welcomeOverlay.style.display = "none";
+        if (welcomeOverlay.parentNode) welcomeOverlay.remove();
+      }
+
+      // 3단계 메인 포털 래퍼를 먼저 선명하게 활성화 (opacity-100 + pointer-events-auto)
+      if (mainWrapper) {
+        mainWrapper.classList.remove("opacity-0", "pointer-events-none");
+        mainWrapper.classList.add("opacity-100", "pointer-events-auto");
+        mainWrapper.style.opacity = "1";
+        mainWrapper.style.pointerEvents = "auto";
+        mainWrapper.style.visibility = "visible";
+      }
+
+      // 2단계 스플래시 오버레이를 부드럽게 페이드아웃 후 display: none 및 DOM에서 완전 제거
+      if (splashOverlay) {
+        splashOverlay.style.opacity = "0";
+        splashOverlay.style.pointerEvents = "none";
+        setTimeout(() => {
+          if (splashOverlay) {
+            splashOverlay.style.display = "none";
+            if (splashOverlay.parentNode) {
+              splashOverlay.remove();
+            }
+          }
+        }, 420);
+      }
+
+      // 등록된 BGM이 있으면 첫 곡 자동 재생 시도
+      if (dataLoaded && appState.bgm && appState.bgm.length > 0) {
+        loadAndPlayTrack(0, true).catch(() => {});
+      }
+    }
+
+    // ================= 입장 버튼 클릭 -> 한 글자씩 로고 페이드인 + 데이터 로드 완료 후 메인 화면 진입 =================
+    async function startPortalExperience() {
+      unlockBrowserAudioContext();
 
       if (hasStartedExperience) return;
       hasStartedExperience = true;
 
-      // 즉시 구글 시트 데이터 불러오기 + 첫 번째 BGM 재생 시도
-      pullFromSheets(false).then((ok) => {
-        if (ok && appState.bgm && appState.bgm.length > 0) {
-          loadAndPlayTrack(0, true).catch(() => {});
-        }
-      }).catch(() => {});
+      const welcomeOverlay = document.getElementById("welcomeIntroOverlay");
+      const splashOverlay = document.getElementById("logoSplashOverlay");
+      const splashLetters = document.querySelectorAll("#splashWordmarkSequence .splash-char, #splashWordmarkSequence .splash-dot");
+
+      // 1) 스플래시 오버레이 먼저 표시 후 1단계 공지 오버레이 숨김 및 제거
+      if (splashOverlay) {
+        splashOverlay.classList.remove("hidden");
+        splashOverlay.style.display = "flex";
+        splashOverlay.style.opacity = "1";
+      }
+      if (welcomeOverlay) {
+        welcomeOverlay.style.opacity = "0";
+        welcomeOverlay.style.pointerEvents = "none";
+        setTimeout(() => {
+          if (welcomeOverlay) {
+            welcomeOverlay.style.display = "none";
+            if (welcomeOverlay.parentNode) welcomeOverlay.remove();
+          }
+        }, 250);
+      }
+
+      // 2) STELLIVE.FUN 12글자 순차 페이드인 애니메이션 시작
+      if (splashLetters && splashLetters.length > 0) {
+        requestAnimationFrame(() => {
+          splashLetters.forEach((el) => el.classList.add("play"));
+        });
+      }
+
+      // 3) 이중 안전 타이머: 어떤 네트워크 오류나 지연이 발생해도 최대 3.5초 내 반드시 메인 화면으로 전환
+      const hardSafetyTimer = setTimeout(() => {
+        finishSplashAndShowMain(appState.bgm && appState.bgm.length > 0);
+      }, 3500);
+
+      try {
+        // 최소 글자 애니메이션 시간(1.5초)과 구글 시트 전체 정보 로딩 대기
+        const minAnimationWait = new Promise((resolve) => setTimeout(resolve, 1500));
+        const softFetchTimeout = new Promise((resolve) => setTimeout(() => resolve(false), 3000));
+        const dataLoadTask = Promise.race([
+          pullFromSheets(false).catch(() => false),
+          softFetchTimeout
+        ]);
+
+        const [dataLoaded] = await Promise.all([dataLoadTask, minAnimationWait]);
+        clearTimeout(hardSafetyTimer);
+        finishSplashAndShowMain(Boolean(dataLoaded));
+      } catch (err) {
+        clearTimeout(hardSafetyTimer);
+        finishSplashAndShowMain(false);
+      }
     }
 
     // ================= 안전 다중 저장 엔진 (메모리 + IndexedDB + Google Drive) =================
@@ -1118,7 +1276,6 @@ function doPost(e) {
     async function getBgmCandidateSources(track, silent = false) {
       const sources = [];
 
-      // 1. 메모리/ObjectURL 캐시
       if (bgmObjectUrlCache[track.id]) {
         sources.push(bgmObjectUrlCache[track.id]);
       } else if (memoryBgmFiles[track.id]) {
@@ -1129,7 +1286,6 @@ function doPost(e) {
         } catch (e) {}
       }
 
-      // 2. IndexedDB 로컬 저장소
       if (sources.length === 0) {
         try {
           const db = await openBgmDb();
@@ -1148,12 +1304,10 @@ function doPost(e) {
         } catch (e) {}
       }
 
-      // 3. Google Drive 및 외부 음원 URL 다중 후보
       const rawUrl = extractTrackUrl(track);
       const driveId = extractGoogleDriveFileId(rawUrl);
 
       if (driveId) {
-        // Apps Script base64 스트리밍 우선 시도 후 Google Drive 직접 스트리밍 폴백 추가
         const blobUrl = await fetchGoogleDriveAudioBlob(driveId, track.id, silent);
         if (blobUrl) sources.push(blobUrl);
         sources.push(...buildAudioCandidateUrls(rawUrl));
@@ -1161,7 +1315,6 @@ function doPost(e) {
         sources.push(...buildAudioCandidateUrls(rawUrl));
       }
 
-      // 중복 제거
       return [...new Set(sources.filter(Boolean))];
     }
 
@@ -1263,7 +1416,6 @@ function doPost(e) {
       const sep = normalizedUrl.includes("?") ? "&" : "?";
       const cacheBustedUrl = `${normalizedUrl}${sep}_t=${Date.now()}`;
 
-      // 1차 시도: 표준 fetch (redirect: follow)
       try {
         const controller = new AbortController();
         const tid = setTimeout(() => controller.abort(), 8500);
@@ -1283,7 +1435,6 @@ function doPost(e) {
         console.warn("1st fetch attempt failed, falling back to JSONP:", fetchErr);
       }
 
-      // 2차 시도: 순수 영숫자 콜백 JSONP
       try {
         const jsonpRes = await loadViaJsonp(normalizedUrl, 8500);
         if (jsonpRes && typeof jsonpRes === "object") return jsonpRes;
@@ -1291,26 +1442,49 @@ function doPost(e) {
         console.warn("2nd JSONP attempt failed, falling back to AllOrigins proxy:", jsonpErr);
       }
 
-      // 3차 시도: AllOrigins 프록시 폴백
       return await loadViaAllOriginsProxy(cacheBustedUrl);
     }
 
     // ================= 초기화 =================
+    function bindWordmarkImageWithFallback(imgEl) {
+      if (!imgEl) return;
+      imgEl.onerror = function () {
+        this.onerror = null;
+        this.src = STELLIVE_ORIGINAL_LOGO_SRC;
+      };
+      imgEl.src = STELLIVE_UPLOADED_PHOTO_PATH;
+    }
+
+    function applyGeneratedLogoToElements() {
+      bindWordmarkImageWithFallback(document.getElementById("bgWatermarkImg"));
+      bindWordmarkImageWithFallback(document.getElementById("headerDefaultLogoImg"));
+    }
+
     window.addEventListener("DOMContentLoaded", () => {
+      try {
+        const savedRaw = localStorage.getItem(STORAGE_KEY);
+        if (savedRaw) {
+          const parsed = JSON.parse(savedRaw);
+          if (parsed && typeof parsed === "object") {
+            appState = {
+              ...appState,
+              ...parsed,
+              settings: { ...appState.settings, ...(parsed.settings || {}) }
+            };
+          }
+        }
+      } catch (e) {}
+
+      applyGeneratedLogoToElements();
       setupAudioEvents();
-      const playBtn = document.getElementById("welcomePlayBtn");
-      if (playBtn) {
-        playBtn.addEventListener("click", startPortalExperience);
-      }
 
       const activeUrl = getActiveSheetsUrl();
-      document.getElementById("sheetsUrlInput").value = activeUrl;
-      document.getElementById("codeGsPreview").textContent = CODE_GS_TEMPLATE;
+      const sheetsInput = document.getElementById("sheetsUrlInput");
+      const codePreview = document.getElementById("codeGsPreview");
+      if (sheetsInput) sheetsInput.value = activeUrl;
+      if (codePreview) codePreview.textContent = CODE_GS_TEMPLATE;
 
-      renderHeaderLogo();
-      renderHeaderSns();
-      renderBanner();
-      renderAuthControls();
+      renderAll();
     });
 
     document.addEventListener("click", (e) => {
@@ -1329,6 +1503,7 @@ function doPost(e) {
 
     function showToast(msg, isError = false) {
       const container = document.getElementById("toastContainer");
+      if (!container) return;
       const el = document.createElement("div");
       el.className = `px-4 py-3 rounded-xl text-xs font-semibold shadow-lg transition-all duration-300 ${
         isError ? "bg-rose-600 text-white" : "bg-[#1E2235] text-white"
@@ -1353,25 +1528,20 @@ function doPost(e) {
 
     function renderHeaderLogo() {
       const container = document.getElementById("headerLogoContainer");
+      if (!container) return;
       if (appState.settings.logoDataUrl) {
-        container.innerHTML = `<img src="${appState.settings.logoDataUrl}" alt="Logo" class="h-8 w-auto max-w-[140px] object-contain" />`;
-      } else if (window.__STELLIVE_DEFAULT_APP_ICON__) {
-        container.innerHTML = `
-          <img src="${window.__STELLIVE_DEFAULT_APP_ICON__}" alt="STELLIVE.FUN" class="h-8 w-8 rounded-lg object-contain" />
-          <span class="font-extrabold text-lg tracking-tight text-[#1E2235]">STELLIVE.FUN</span>
-        `;
+        container.innerHTML = `<img src="${appState.settings.logoDataUrl}" alt="Logo" class="h-8 w-auto max-w-[160px] object-contain" />`;
       } else {
         container.innerHTML = `
-          <svg class="w-6 h-6 text-[#5B6AD0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-          </svg>
-          <span class="font-extrabold text-lg tracking-tight text-[#1E2235]">STELLIVE</span>
+          <img id="headerDefaultLogoImg" alt="STELLIVE.FUN" class="stellive-crisp-logo h-6 sm:h-7 w-auto object-contain border-0 mix-blend-multiply" />
         `;
+        bindWordmarkImageWithFallback(document.getElementById("headerDefaultLogoImg"));
       }
     }
 
     function renderHeaderSns() {
       const container = document.getElementById("headerSnsList");
+      if (!container) return;
       if (!appState.sns || appState.sns.length === 0) {
         container.innerHTML = "";
         return;
@@ -1389,8 +1559,10 @@ function doPost(e) {
     }
 
     function renderBanner() {
-      document.getElementById("siteTitleDisplay").textContent = appState.settings.siteTitle || "Stellive Fan Web Portal";
-      document.getElementById("siteDescDisplay").textContent = appState.settings.siteDesc || "";
+      const titleEl = document.getElementById("siteTitleDisplay");
+      const descEl = document.getElementById("siteDescDisplay");
+      if (titleEl) titleEl.textContent = appState.settings.siteTitle || "Stellive Fan Web Portal";
+      if (descEl) descEl.textContent = appState.settings.siteDesc || "";
     }
 
     function handleThumbError(imgEl) {
@@ -1480,10 +1652,11 @@ function doPost(e) {
 
     function renderProjects() {
       const grid = document.getElementById("projectsGrid");
+      if (!grid) return;
       const sorted = [...(appState.projects || [])].sort((a, b) => (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0));
 
       if (sorted.length === 0) {
-        grid.innerHTML = `<div class="col-span-full text-center py-16 text-sm text-slate-400 bg-white rounded-2xl border border-slate-200/80">등록된 프로젝트가 없습니다.</div>`;
+        grid.innerHTML = `<div class="col-span-full text-center py-16 text-sm text-slate-400 bg-white/90 rounded-2xl border border-slate-200/80">등록된 프로젝트가 없습니다.</div>`;
         return;
       }
 
@@ -1514,7 +1687,7 @@ function doPost(e) {
 
         return `
           <article onclick="openProjectShortcut(event, '${encodedRawUrl}')"
-                   class="group cursor-pointer bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col justify-between transition hover:shadow-md hover:border-[#5B6AD0]/50">
+                   class="group cursor-pointer bg-white/95 backdrop-blur-xs rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col justify-between transition hover:shadow-md hover:border-[#5B6AD0]/50">
             <div>
               <div class="w-full h-44 bg-[#EAEFF8] flex items-center justify-center overflow-hidden">
                 ${thumbHtml}
@@ -1544,13 +1717,16 @@ function doPost(e) {
       const adminLoginBtn = document.getElementById("adminLoginBtn");
       const adminConsoleBtn = document.getElementById("adminConsoleBtn");
       const heroEditDescBtn = document.getElementById("heroEditDescBtn");
+      if (!adminLoginBtn || !adminConsoleBtn || !heroEditDescBtn) return;
 
       if (currentAdmin) {
         adminLoginBtn.classList.add("hidden");
         adminConsoleBtn.classList.remove("hidden");
         heroEditDescBtn.classList.remove("hidden");
-        document.getElementById("adminDisplayId").textContent = currentAdmin.id;
-        document.getElementById("adminDisplayRole").textContent = currentAdmin.role || "관리자";
+        const idEl = document.getElementById("adminDisplayId");
+        const roleEl = document.getElementById("adminDisplayRole");
+        if (idEl) idEl.textContent = currentAdmin.id;
+        if (roleEl) roleEl.textContent = currentAdmin.role || "관리자";
       } else {
         adminLoginBtn.classList.remove("hidden");
         adminConsoleBtn.classList.add("hidden");
@@ -1560,16 +1736,20 @@ function doPost(e) {
 
     // ================= 모달 제어 =================
     function openModal(id) {
-      document.getElementById("adminDropdownMenu").classList.add("hidden");
-      document.getElementById(id).classList.remove("hidden");
+      const menu = document.getElementById("adminDropdownMenu");
+      if (menu) menu.classList.add("hidden");
+      const modal = document.getElementById(id);
+      if (modal) modal.classList.remove("hidden");
     }
 
     function closeModal(id) {
-      document.getElementById(id).classList.add("hidden");
+      const modal = document.getElementById(id);
+      if (modal) modal.classList.add("hidden");
     }
 
     function toggleAdminMenu() {
-      document.getElementById("adminDropdownMenu").classList.toggle("hidden");
+      const menu = document.getElementById("adminDropdownMenu");
+      if (menu) menu.classList.toggle("hidden");
     }
 
     // ================= 관리자 인증 =================
@@ -1595,7 +1775,8 @@ function doPost(e) {
 
     function logoutAdmin() {
       currentAdmin = null;
-      document.getElementById("adminDropdownMenu").classList.add("hidden");
+      const menu = document.getElementById("adminDropdownMenu");
+      if (menu) menu.classList.add("hidden");
       renderAll();
       showToast("관리자 로그아웃되었습니다.");
     }
@@ -1788,7 +1969,7 @@ function doPost(e) {
       await pushAllToSheets(false);
     }
 
-    // ================= BGM 배경음악 관리 (Google Drive 자동 업로드 + 번호 순서) =================
+    // ================= BGM 배경음악 관리 =================
     function openBgmModal() {
       pendingBgmFile = null;
       document.getElementById("bgmFileInput").value = "";
@@ -1959,6 +2140,7 @@ function doPost(e) {
 
     function setupAudioEvents() {
       const audio = document.getElementById("bgmMediaPlayer");
+      if (!audio) return;
       audio.volume = 0.5;
       audio.addEventListener("ended", () => {
         nextBgmTrack();
@@ -2147,7 +2329,7 @@ function doPost(e) {
       document.getElementById("logoFileInput").value = "";
       document.getElementById("logoPreviewArea").innerHTML = tempLogoDataUrl
         ? `<img src="${tempLogoDataUrl}" class="max-h-14 object-contain" />`
-        : `<span class="text-xs font-bold text-slate-500">기본 STELLIVE 로고</span>`;
+        : `<img src="${STELLIVE_ORIGINAL_LOGO_SRC}" class="max-h-14 object-contain" />`;
       openModal("logoModal");
     }
 
@@ -2175,7 +2357,7 @@ function doPost(e) {
       saveLocalState();
       renderHeaderLogo();
       closeModal("logoModal");
-      showToast("기본 로고로 복원되었습니다.");
+      showToast("기본 STELLIVE.FUN 로고로 복원되었습니다.");
       await pushAllToSheets(false);
     }
 

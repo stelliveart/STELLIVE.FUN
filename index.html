@@ -349,12 +349,12 @@
         STELLIVE.FUN
       </h1>
 
-      <!-- STELLIVE.FUN 소개 카드 (관리자 콘솔에서 수정 가능) -->
+      <!-- STELLIVE.FUN 소개 카드 (줄바꿈 그대로 반영) -->
       <div class="w-full rounded-2xl bg-indigo-50/60 border border-indigo-100 p-5 sm:p-6 text-left shadow-xs mb-4">
         <div id="introAboutTitleDisplay" class="text-xs sm:text-sm font-extrabold text-[#5B6AD0] mb-2">
           [STELLIVE.FUN 소개]
         </div>
-        <p id="introAboutDescDisplay" class="text-xs sm:text-[13px] text-slate-700 font-medium leading-relaxed whitespace-pre-line">STELLIVE.FUN은 서로 다른 별에 있는 게임들을 이곳으로 모은 장소입니다.</p>
+        <p id="introAboutDescDisplay" class="text-xs sm:text-[13px] text-slate-700 font-medium leading-relaxed whitespace-pre-line break-words">STELLIVE.FUN은 서로 다른 별에 있는 게임들을 이곳으로 모은 장소입니다.</p>
       </div>
 
       <!-- 공지 및 유의사항 카드 -->
@@ -542,7 +542,7 @@
                   <svg class="w-4 h-4 text-[#5B6AD0] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
                   <div>
                     <div class="text-xs font-bold text-[#1E2235]">홈 화면 아이콘 및 이름 설정</div>
-                    <div class="text-[11px] text-slate-400">홈 화면 추가 아이콘 이미지 및 앱 이름 지정</div>
+                    <div class="text-[11px] text-slate-400">홈 화면 추가 아이콘 이미지/URL 및 앱 이름 지정</div>
                   </div>
                 </button>
                 <button type="button" onclick="openSuggestionsAdminModal()" class="w-full px-4 py-2.5 hover:bg-slate-50 flex items-start gap-3 text-left transition">
@@ -602,11 +602,11 @@
 
     <!-- 메인 콘텐츠 -->
     <main class="relative z-10 flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-8">
-      <!-- 메인 소개 배너 카드 -->
+      <!-- 메인 소개 배너 카드 (줄바꿈 그대로 반영) -->
       <section class="bg-white/95 backdrop-blur-xs rounded-2xl border border-slate-200/80 shadow-sm p-6 sm:p-8 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
+        <div class="min-w-0">
           <h1 id="siteTitleDisplay" class="text-xl sm:text-2xl font-extrabold text-[#1E2235] mb-2">Stellive Fan Web Portal</h1>
-          <p id="siteDescDisplay" class="text-sm text-slate-500 leading-relaxed whitespace-pre-line">스텔라이브(Stellive) 팬메이드 웹 게임과 다양한 팬 아트를 한곳에서 즐길 수 있는 공간입니다.
+          <p id="siteDescDisplay" class="text-sm text-slate-500 leading-relaxed whitespace-pre-line break-words">스텔라이브(Stellive) 팬메이드 웹 게임과 다양한 팬 아트를 한곳에서 즐길 수 있는 공간입니다.
 아래 프로젝트를 클릭해 바로 플레이해 보세요!</p>
         </div>
         <div class="flex items-center gap-2 shrink-0">
@@ -691,7 +691,7 @@
 
   <!-- 2. 프로젝트 등록 / 수정 모달 -->
   <div id="projectModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto custom-scrollbar">
       <div class="flex items-center justify-between mb-4">
         <h3 id="projectModalTitle" class="text-base font-extrabold text-[#1E2235]">프로젝트 등록</h3>
         <button type="button" onclick="closeModal('projectModal')" class="text-slate-400 hover:text-slate-600 text-xs font-semibold">닫기</button>
@@ -703,8 +703,8 @@
           <input id="projTitle" type="text" required placeholder="예: 아르냥을 날려라!" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]" />
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">프로젝트 설명</label>
-          <textarea id="projDesc" rows="2" required placeholder="간단한 소개 문구를 입력하세요" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]"></textarea>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">프로젝트 설명 (줄바꿈 그대로 반영)</label>
+          <textarea id="projDesc" rows="3" required placeholder="엔터로 줄을 내리면 카드에도 줄이 내려가서 표시됩니다." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]"></textarea>
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">바로가기 URL</label>
@@ -738,7 +738,7 @@
           <input id="editSiteTitleInput" type="text" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]" />
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">안내 설명 문구</label>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">안내 설명 문구 (줄바꿈 그대로 반영)</label>
           <textarea id="editSiteDescInput" rows="4" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]"></textarea>
         </div>
         <button type="submit" class="w-full py-2.5 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-sm font-bold transition">설명창 저장</button>
@@ -759,7 +759,7 @@
           <input id="editIntroAboutTitleInput" type="text" required placeholder="예: [STELLIVE.FUN 소개]" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]" />
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">STELLIVE.FUN 소개 내용</label>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">STELLIVE.FUN 소개 내용 (줄바꿈 그대로 반영)</label>
           <textarea id="editIntroAboutDescInput" rows="5" required placeholder="처음 입장 화면에 표시될 사이트 소개 문구를 입력하세요" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm outline-none focus:border-[#5B6AD0]"></textarea>
         </div>
         <button type="submit" class="w-full py-2.5 rounded-xl bg-[#5B6AD0] hover:bg-[#4A58B8] text-white text-sm font-bold transition">저장하기</button>
@@ -879,23 +879,27 @@
     </div>
   </div>
 
-  <!-- 6-2. 홈 화면 아이콘 및 이름 설정 모달 -->
+  <!-- 6-2. 홈 화면 아이콘 및 이름 설정 모달 (URL 직접 입력 + 파일 초경량 자동 압축 지원) -->
   <div id="appIconModal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto custom-scrollbar">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-base font-extrabold text-[#1E2235]">홈 화면 아이콘 및 이름 설정</h3>
         <button type="button" onclick="closeModal('appIconModal')" class="text-slate-400 hover:text-slate-600 text-xs font-semibold">닫기</button>
       </div>
       <div class="space-y-3.5">
         <p class="text-[11px] text-slate-500 leading-relaxed">
-          스마트폰 및 태블릿에서 <strong>'홈 화면에 추가'</strong> 시 표시되는 앱 아이콘 이미지와 홈 화면 아이콘 이름을 설정할 수 있습니다. (구글 시트 자동 최적화 저장 지원)
+          스마트폰 및 태블릿에서 <strong>'홈 화면에 추가'</strong> 시 표시되는 앱 아이콘과 이름을 설정합니다. 이미지 URL을 직접 입력하거나 파일을 업로드하세요.
         </p>
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">홈 화면 아이콘 이름 (앱 이름)</label>
           <input id="appIconNameInput" type="text" maxlength="24" placeholder="예: STELLIVE.FUN" oninput="updateAppIconPreviewName(this.value)" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#1E2235] outline-none focus:border-[#5B6AD0]" />
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">아이콘 이미지 파일 선택</label>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">아이콘 이미지 URL (선택)</label>
+          <input id="appIconUrlInput" type="url" placeholder="https://stelliveart.github.io/icon.png" oninput="previewAppIconUrlInput(this.value)" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs text-[#1E2235] outline-none focus:border-[#5B6AD0]" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">또는 아이콘 이미지 파일 업로드</label>
           <input id="appIconFileInput" type="file" accept="image/*" onchange="previewAppIconFile(event)" class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-[#5B6AD0] hover:file:bg-indigo-100 cursor-pointer" />
         </div>
         <div class="flex flex-col items-center justify-center py-3.5 rounded-xl bg-[#F4F6FA] border border-slate-200">
@@ -1001,7 +1005,7 @@
     const STORAGE_KEY = "stellive_portal_state_v23";
     const SHEETS_URL_STORAGE_KEY = "stellive_portal_sheets_url_v23";
     const ADMIN_SESSION_KEY = "stellive_portal_admin_session_v23";
-    const MAX_SHEET_CELL_CHARS = 42000; /* 구글 시트 1셀 최대 50,000자 제한 안전 마진 */
+    const MAX_SHEET_CELL_CHARS = 38000; /* 구글 시트 1셀 최대 50,000자 제한 안전 마진 */
 
     const MAIN_ADMIN = {
       id: "dltjdgk0107",
@@ -1818,6 +1822,16 @@ function doPost(e) {
       }, 3000);
     }
 
+    /* 줄바꿈(\r\n, \r, \n 및 이스케이프된 \\n) 정규화 헬퍼 */
+    function normalizeMultilineText(str) {
+      if (str === null || str === undefined) return "";
+      return String(str)
+        .replace(/\\r\\n/g, "\n")
+        .replace(/\\n/g, "\n")
+        .replace(/\r\n/g, "\n")
+        .replace(/\r/g, "\n");
+    }
+
     /* 전체 화면 렌더링 */
     function renderAll() {
       renderIntroAbout();
@@ -1838,9 +1852,10 @@ function doPost(e) {
           : "[STELLIVE.FUN 소개]";
       }
       if (descEl) {
-        descEl.textContent = (appState.settings.introAboutDesc && appState.settings.introAboutDesc.trim() !== "")
+        const rawDesc = (appState.settings.introAboutDesc && appState.settings.introAboutDesc.trim() !== "")
           ? appState.settings.introAboutDesc
           : "STELLIVE.FUN은 서로 다른 별에 있는 게임들을 이곳으로 모은 장소입니다.";
+        descEl.textContent = normalizeMultilineText(rawDesc);
       }
     }
 
@@ -1880,7 +1895,7 @@ function doPost(e) {
       const titleEl = document.getElementById("siteTitleDisplay");
       const descEl = document.getElementById("siteDescDisplay");
       if (titleEl) titleEl.textContent = appState.settings.siteTitle || "Stellive Fan Web Portal";
-      if (descEl) descEl.textContent = appState.settings.siteDesc || "";
+      if (descEl) descEl.textContent = normalizeMultilineText(appState.settings.siteDesc || "");
     }
 
     function handleThumbError(imgEl) {
@@ -2035,6 +2050,7 @@ function doPost(e) {
         const normalizedUrl = normalizeProjectUrl(rawUrl);
         const displayHref = normalizedUrl || "#";
         const encodedRawUrl = escapeHtml(rawUrl);
+        const formattedDesc = normalizeMultilineText(proj.description || "");
 
         const hasThumb = proj.thumbnail && proj.thumbnail.trim() !== "";
         const thumbHtml = hasThumb
@@ -2067,7 +2083,7 @@ function doPost(e) {
                   <h2 class="text-base font-extrabold text-[#1E2235] truncate group-hover:text-[#5B6AD0] transition">${escapeHtml(proj.title)}</h2>
                   ${proj.isPinned ? '<span class="px-2 py-0.5 rounded-md bg-indigo-50 text-[#5B6AD0] text-[10px] font-bold shrink-0">고정</span>' : ''}
                 </div>
-                <p class="text-xs text-slate-500 leading-relaxed line-clamp-2 min-h-[2.4rem]">${escapeHtml(proj.description)}</p>
+                <p class="text-xs text-slate-500 leading-relaxed whitespace-pre-line break-words min-h-[2.4rem]">${escapeHtml(formattedDesc)}</p>
               </div>
             </div>
             <div class="px-5 pb-5">
@@ -2203,7 +2219,7 @@ function doPost(e) {
       document.getElementById("projectModalTitle").textContent = "프로젝트 수정";
       document.getElementById("editProjectId").value = proj.id;
       document.getElementById("projTitle").value = proj.title;
-      document.getElementById("projDesc").value = proj.description;
+      document.getElementById("projDesc").value = normalizeMultilineText(proj.description || "");
       document.getElementById("projUrl").value = extractProjectUrl(proj);
       document.getElementById("projThumbFile").value = "";
       tempProjectThumb = proj.thumbnail || "";
@@ -2232,7 +2248,7 @@ function doPost(e) {
       e.preventDefault();
       const editId = document.getElementById("editProjectId").value;
       const title = document.getElementById("projTitle").value.trim();
-      const description = document.getElementById("projDesc").value.trim();
+      const description = normalizeMultilineText(document.getElementById("projDesc").value).trim();
       const rawUrl = document.getElementById("projUrl").value.trim();
       const url = normalizeProjectUrl(rawUrl);
 
@@ -2286,14 +2302,14 @@ function doPost(e) {
     /* 웹사이트 설명창 수정 */
     function openBannerEditModal() {
       document.getElementById("editSiteTitleInput").value = appState.settings.siteTitle || "";
-      document.getElementById("editSiteDescInput").value = appState.settings.siteDesc || "";
+      document.getElementById("editSiteDescInput").value = normalizeMultilineText(appState.settings.siteDesc || "");
       openModal("bannerEditModal");
     }
 
     async function saveBannerSettings(e) {
       e.preventDefault();
       appState.settings.siteTitle = document.getElementById("editSiteTitleInput").value.trim();
-      appState.settings.siteDesc = document.getElementById("editSiteDescInput").value.trim();
+      appState.settings.siteDesc = normalizeMultilineText(document.getElementById("editSiteDescInput").value).trim();
       saveLocalState();
       renderBanner();
       closeModal("bannerEditModal");
@@ -2304,14 +2320,14 @@ function doPost(e) {
     /* 처음 화면 STELLIVE.FUN 소개글 설정 */
     function openIntroAboutModal() {
       document.getElementById("editIntroAboutTitleInput").value = appState.settings.introAboutTitle || "[STELLIVE.FUN 소개]";
-      document.getElementById("editIntroAboutDescInput").value = appState.settings.introAboutDesc || "STELLIVE.FUN은 서로 다른 별에 있는 게임들을 이곳으로 모은 장소입니다.";
+      document.getElementById("editIntroAboutDescInput").value = normalizeMultilineText(appState.settings.introAboutDesc || "STELLIVE.FUN은 서로 다른 별에 있는 게임들을 이곳으로 모은 장소입니다.");
       openModal("introAboutModal");
     }
 
     async function saveIntroAboutSettings(e) {
       e.preventDefault();
       appState.settings.introAboutTitle = document.getElementById("editIntroAboutTitleInput").value.trim() || "[STELLIVE.FUN 소개]";
-      appState.settings.introAboutDesc = document.getElementById("editIntroAboutDescInput").value.trim();
+      appState.settings.introAboutDesc = normalizeMultilineText(document.getElementById("editIntroAboutDescInput").value).trim();
       saveLocalState();
       renderIntroAbout();
       closeModal("introAboutModal");
@@ -2744,7 +2760,7 @@ function doPost(e) {
       audio.muted = Number(val) === 0;
     }
 
-    /* 로고 이미지 파일 업로드 (구글 시트 1셀 한도 42,000자 이하 자동 압축) */
+    /* 로고 이미지 파일 업로드 */
     function openLogoModal() {
       tempLogoDataUrl = appState.settings.logoDataUrl || "";
       document.getElementById("logoFileInput").value = "";
@@ -2782,13 +2798,18 @@ function doPost(e) {
       await pushAllToSheets(false);
     }
 
-    /* 홈 화면 아이콘 및 이름 설정 (구글 시트 1셀 50,000자 제한 자동 압축 대응) */
+    /* 홈 화면 아이콘 및 이름 설정 (URL 직접 입력 + 초경량 압축 대응) */
     function openAppIconModal() {
       tempAppIconDataUrl = appState.settings.appIconDataUrl || "";
       const currentName = appState.settings.appIconName || "STELLIVE.FUN";
       document.getElementById("appIconFileInput").value = "";
       document.getElementById("appIconNameInput").value = currentName;
       document.getElementById("appIconPreviewNameText").textContent = currentName;
+
+      const urlInput = document.getElementById("appIconUrlInput");
+      if (urlInput) {
+        urlInput.value = (tempAppIconDataUrl && /^https?:\/\//i.test(tempAppIconDataUrl)) ? tempAppIconDataUrl : "";
+      }
 
       const previewSrc = tempAppIconDataUrl || window.__STELLIVE_DEFAULT_APP_ICON__ || STELLIVE_SQUARE_ICON_SRC;
       document.getElementById("appIconPreviewArea").innerHTML = `<img src="${previewSrc}" alt="App Icon Preview" class="w-full h-full object-cover" />`;
@@ -2801,10 +2822,19 @@ function doPost(e) {
       if (labelEl) labelEl.textContent = display;
     }
 
+    function previewAppIconUrlInput(val) {
+      const trimmed = String(val || "").trim();
+      if (!trimmed) return;
+      tempAppIconDataUrl = trimmed;
+      document.getElementById("appIconPreviewArea").innerHTML = `<img src="${escapeHtml(trimmed)}" alt="App Icon Preview" onerror="this.src=STELLIVE_SQUARE_ICON_SRC" class="w-full h-full object-cover" />`;
+    }
+
     function previewAppIconFile(e) {
       const file = e.target.files[0];
       if (!file) return;
-      compressImageUnderLimit(file, 240, MAX_SHEET_CELL_CHARS, true, (dataUrl) => {
+      const urlInput = document.getElementById("appIconUrlInput");
+      if (urlInput) urlInput.value = "";
+      compressImageUnderLimit(file, 192, MAX_SHEET_CELL_CHARS, true, (dataUrl) => {
         tempAppIconDataUrl = dataUrl;
         document.getElementById("appIconPreviewArea").innerHTML = `<img src="${dataUrl}" alt="App Icon Preview" class="w-full h-full object-cover" />`;
       });
@@ -2819,12 +2849,12 @@ function doPost(e) {
 
       try {
         const nameInput = document.getElementById("appIconNameInput");
+        const urlInput = document.getElementById("appIconUrlInput");
         const newName = (nameInput && nameInput.value.trim() !== "") ? nameInput.value.trim() : "STELLIVE.FUN";
 
-        /* 혹시 기존 캐시 이미지가 42,000자를 넘으면 재압축하여 구글 시트 셀 초과 원천 차단 */
-        let finalIconDataUrl = tempAppIconDataUrl;
-        if (finalIconDataUrl && finalIconDataUrl.length > MAX_SHEET_CELL_CHARS) {
-          finalIconDataUrl = await recompressDataUrlUnderLimit(finalIconDataUrl, MAX_SHEET_CELL_CHARS, true);
+        let finalIconDataUrl = (urlInput && urlInput.value.trim() !== "") ? urlInput.value.trim() : tempAppIconDataUrl;
+        if (finalIconDataUrl && finalIconDataUrl.startsWith("data:") && finalIconDataUrl.length > MAX_SHEET_CELL_CHARS) {
+          finalIconDataUrl = await recompressDataUrlUnderLimit(finalIconDataUrl, MAX_SHEET_CELL_CHARS, true, 160);
           tempAppIconDataUrl = finalIconDataUrl;
         }
 
@@ -2858,7 +2888,7 @@ function doPost(e) {
       await pushAllToSheets(false);
     }
 
-    /* 이미지 자동 압축 엔진 (구글 스프레드시트 1셀 50,000자 한도 내 무조건 수렴) */
+    /* 이미지 자동 압축 엔진 */
     function compressImageUnderLimit(file, startSize, maxChars, forceSquare, callback) {
       const reader = new FileReader();
       reader.onload = async (ev) => {
@@ -2868,12 +2898,12 @@ function doPost(e) {
       reader.readAsDataURL(file);
     }
 
-    function recompressDataUrlUnderLimit(srcDataUrl, maxChars = MAX_SHEET_CELL_CHARS, forceSquare = false, initialMaxDim = 240) {
+    function recompressDataUrlUnderLimit(srcDataUrl, maxChars = MAX_SHEET_CELL_CHARS, forceSquare = false, initialMaxDim = 192) {
       return new Promise((resolve) => {
         const img = new Image();
         img.onload = () => {
-          const sizeSteps = [initialMaxDim, 192, 160, 128, 96];
-          const qualitySteps = [0.85, 0.72, 0.6, 0.48, 0.36];
+          const sizeSteps = [initialMaxDim, 160, 128, 96];
+          const qualitySteps = [0.82, 0.68, 0.55, 0.42];
 
           for (let s = 0; s < sizeSteps.length; s++) {
             const targetDim = sizeSteps[s];
@@ -2909,14 +2939,12 @@ function doPost(e) {
               ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             }
 
-            /* 1) PNG로 먼저 시도 (작은 아이콘은 무손실 PNG로도 42,000자 이내 통과) */
             const pngUrl = canvas.toDataURL("image/png");
             if (pngUrl.length <= maxChars) {
               resolve(pngUrl);
               return;
             }
 
-            /* 2) 용량 초과 시 고효율 JPEG 품질 단계별 압축 */
             for (let q = 0; q < qualitySteps.length; q++) {
               const jpgUrl = canvas.toDataURL("image/jpeg", qualitySteps[q]);
               if (jpgUrl.length <= maxChars) {
@@ -2926,7 +2954,6 @@ function doPost(e) {
             }
           }
 
-          /* 최종 안전 폴백 (96px JPEG 0.3) */
           const fallbackCanvas = document.createElement("canvas");
           fallbackCanvas.width = 96;
           fallbackCanvas.height = 96;
@@ -2949,7 +2976,7 @@ function doPost(e) {
     async function submitSuggestion(e) {
       e.preventDefault();
       const title = document.getElementById("sugTitleInput").value.trim();
-      const content = document.getElementById("sugContentInput").value.trim();
+      const content = normalizeMultilineText(document.getElementById("sugContentInput").value).trim();
       appState.suggestions.push({
         id: "sug_" + Date.now(),
         userId: "anonymous",
@@ -2979,7 +3006,7 @@ function doPost(e) {
           <div class="p-3 rounded-xl border border-slate-200 text-xs flex items-start justify-between gap-2.5">
             <div class="space-y-1 min-w-0">
               <div class="font-bold text-[#1E2235]">${escapeHtml(s.title)} <span class="text-slate-400 font-normal">(${escapeHtml(s.userNickname || '익명')})</span></div>
-              <div class="text-slate-600 whitespace-pre-line break-words">${escapeHtml(s.content)}</div>
+              <div class="text-slate-600 whitespace-pre-line break-words">${escapeHtml(normalizeMultilineText(s.content || ""))}</div>
             </div>
             <button type="button" onclick="deleteSuggestion('${s.id}')" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 text-[11px] font-semibold shrink-0">삭제</button>
           </div>
@@ -3083,6 +3110,7 @@ function doPost(e) {
               const extracted = extractProjectUrl(p);
               return {
                 ...p,
+                description: normalizeMultilineText(p.description || ""),
                 url: normalizeProjectUrl(extracted) || extracted
               };
             });
@@ -3098,9 +3126,19 @@ function doPost(e) {
             }));
           }
           if (Array.isArray(d.users)) appState.users = d.users;
-          if (Array.isArray(d.suggestions)) appState.suggestions = d.suggestions;
+          if (Array.isArray(d.suggestions)) {
+            appState.suggestions = d.suggestions.map(s => ({
+              ...s,
+              content: normalizeMultilineText(s.content || "")
+            }));
+          }
           if (d.settings && typeof d.settings === "object") {
-            appState.settings = { ...appState.settings, ...d.settings };
+            appState.settings = {
+              ...appState.settings,
+              ...d.settings,
+              siteDesc: normalizeMultilineText(d.settings.siteDesc !== undefined ? d.settings.siteDesc : appState.settings.siteDesc),
+              introAboutDesc: normalizeMultilineText(d.settings.introAboutDesc !== undefined ? d.settings.introAboutDesc : appState.settings.introAboutDesc)
+            };
           }
           if (Array.isArray(d.admins) && d.admins.length > 0) {
             const hasMain = d.admins.some(a => a && a.id === MAIN_ADMIN.id);
@@ -3138,12 +3176,12 @@ function doPost(e) {
 
       /* 전송 전 구글 시트 셀 50,000자 제한 초과 항목 사전 방어 */
       const safePayloadState = JSON.parse(JSON.stringify(appState));
-      if (safePayloadState.settings && safePayloadState.settings.appIconDataUrl && safePayloadState.settings.appIconDataUrl.length > 49000) {
+      if (safePayloadState.settings && safePayloadState.settings.appIconDataUrl && safePayloadState.settings.appIconDataUrl.startsWith("data:") && safePayloadState.settings.appIconDataUrl.length > 49000) {
         safePayloadState.settings.appIconDataUrl = await recompressDataUrlUnderLimit(safePayloadState.settings.appIconDataUrl, MAX_SHEET_CELL_CHARS, true, 160);
         appState.settings.appIconDataUrl = safePayloadState.settings.appIconDataUrl;
         saveLocalState();
       }
-      if (safePayloadState.settings && safePayloadState.settings.logoDataUrl && safePayloadState.settings.logoDataUrl.length > 49000) {
+      if (safePayloadState.settings && safePayloadState.settings.logoDataUrl && safePayloadState.settings.logoDataUrl.startsWith("data:") && safePayloadState.settings.logoDataUrl.length > 49000) {
         safePayloadState.settings.logoDataUrl = await recompressDataUrlUnderLimit(safePayloadState.settings.logoDataUrl, MAX_SHEET_CELL_CHARS, false, 180);
         appState.settings.logoDataUrl = safePayloadState.settings.logoDataUrl;
         saveLocalState();
@@ -3182,7 +3220,6 @@ function doPost(e) {
           body: formBody.toString()
         });
 
-        /* 저장 반영 확인을 위해 시트에서 다시 조회 검증 */
         await new Promise(r => setTimeout(r, 900));
         const verifyRes = await fetchAppsScriptSmart(url);
         if (verifyRes && verifyRes.ok) {
